@@ -3,7 +3,8 @@ import { db } from "../config/firebase.js";
 
 /**
  * GET /api/superdashboard/users
- * Returns all admins (platform users)
+ * Returns all admins (platform users) with pagination
+ * Query params: page (default: 1), limit (default: 7)
  */
 export const getAllPlatformUsers = async (req, res) => {
   try {
@@ -15,7 +16,7 @@ export const getAllPlatformUsers = async (req, res) => {
 
     const data = snapshot.val();
 
-    const users = Object.entries(data).map(([uid, user]) => {
+    const allUsers = Object.entries(data).map(([uid, user]) => {
       return {
         id: uid,
         name: user.name || "N/A",
@@ -29,7 +30,26 @@ export const getAllPlatformUsers = async (req, res) => {
       };
     });
 
-    return res.status(200).json({ users });
+    // --- Pagination ---
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.max(1, parseInt(req.query.limit) || 7);
+    const totalUsers = allUsers.length;
+    const totalPages = Math.ceil(totalUsers / limit);
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const users = allUsers.slice(startIndex, endIndex);
+
+    return res.status(200).json({
+      users,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalUsers,
+        limit,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+    });
   } catch (error) {
     console.error("GET USERS ERROR:", error);
     return res.status(500).json({ message: "Failed to fetch users" });
