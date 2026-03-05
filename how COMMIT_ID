@@ -1,0 +1,14 @@
+[33me86ab1e[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m backend intehration with pagination
+[33m7eea828[m Updated backend integration
+[33mb65b114[m Merge remote-tracking branch 'origin/modifications'
+[33m8ca5a11[m[33m ([m[1;31morigin/modifications[m[33m)[m Added Founder Page
+[33mdbf3997[m Added Advanced Section Pages
+[33md0a5633[m[33m ([m[1;31morigin/Rahul[m[33m)[m added blogs
+[33ma8758b2[m Resolved merge conflict in dashboard page
+[33mc6726c3[m Added management pages UI
+[33m4ba31b7[m Updated user management with backend integration
+[33m845f191[m Added backend folder
+[33mdf5e5b0[m created pages of platform and connected to backend
+[33mb35d46b[m Fixed layout error and added routing navigation
+[33m3348d75[m first commit
+[33m0bf5120[m Initial commit from Create Next App
