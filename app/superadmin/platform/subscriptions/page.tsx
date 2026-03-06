@@ -1,6 +1,5 @@
 "use client";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 /* ─────────────────────────────────────────
    TYPES
@@ -22,60 +21,6 @@ interface ExpiringItem {
   plan: string;
   daysLeft: number;
 }
-
-/* ─────────────────────────────────────────
-   DATA
-───────────────────────────────────────── */
-const PLANS: Plan[] = [
-  {
-    id: "trial",
-    name: "Trial",
-    price: "₹0",
-    period: "/14 days",
-    salons: 53,
-    features: ["1 Branch", "Basic Booking", "Email Support", "50 Appointments/mo"],
-  },
-  {
-    id: "starter",
-    name: "Starter",
-    price: "₹2,999",
-    period: "/month",
-    salons: 89,
-    features: ["2 Branches", "Online Booking", "SMS Notifications", "500 Appointments/mo", "Basic Reports"],
-  },
-  {
-    id: "pro",
-    name: "Pro",
-    price: "₹7,999",
-    period: "/month",
-    salons: 128,
-    popular: true,
-    features: ["5 Branches", "Advanced Booking", "WhatsApp + SMS", "Unlimited Appointments", "Full Reports", "Staff Management", "Inventory"],
-  },
-  {
-    id: "enterprise",
-    name: "Enterprise",
-    price: "₹19,999",
-    period: "/month",
-    salons: 42,
-    features: ["Unlimited Branches", "White Label", "Custom Domain", "API Access", "Priority Support", "Dedicated Manager", "Custom Integrations"],
-  },
-];
-
-const EXPIRING: ExpiringItem[] = [
-  { id: 1, name: "Bloom & Glow",   owner: "Kavita Nair",  plan: "Starter",    daysLeft: 2  },
-  { id: 2, name: "Curl House",     owner: "Suresh Babu",  plan: "Pro",        daysLeft: 5  },
-  { id: 3, name: "Nature's Touch", owner: "Lakshmi R",    plan: "Starter",    daysLeft: 7  },
-  { id: 4, name: "Studio Noir",    owner: "Vikram Shah",  plan: "Enterprise", daysLeft: 10 },
-];
-
-const BAR_DATA = [
-  { label: "Trial",      value: 0   },
-  { label: "Starter",    value: 2.7 },
-  { label: "Pro",        value: 10.2 },
-  { label: "Enterprise", value: 8.4 },
-];
-const MAX_BAR = 12;
 
 /* ─────────────────────────────────────────
    EDIT PLAN MODAL
@@ -147,37 +92,55 @@ function EditModal({ plan, onClose }: { plan: Plan; onClose: () => void }) {
    MAIN PAGE
 ───────────────────────────────────────── */
 export default function SubscriptionsPage() {
-  const [editingPlan, setEditingPlan]     = useState<Plan | null>(null);
-  const [renewed, setRenewed]             = useState<number[]>([]);
+  const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
+  const [renewed, setRenewed]         = useState<number[]>([]);
+  const [plans, setPlans]             = useState<any[]>([]);
+  const [expiring, setExpiring]       = useState<any[]>([]);
+  const [barData, setBarData]         = useState<any[]>([]);
 
   const handleRenew = (id: number) => setRenewed((prev) => [...prev, id]);
+
+  const MAX_BAR = Math.max(...barData.map((d) => d.value), 10);
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const res  = await fetch("http://localhost:3001/api/superadminsubscriptions/dashboard");
+        const data = await res.json();
+        setPlans(data.plans || []);
+        setExpiring(data.expiring || []);
+        setBarData(data.revenueByPlan || []);
+      } catch (err) {
+        console.error("Dashboard fetch error", err);
+      }
+    };
+    fetchDashboard();
+  }, []);
 
   return (
     <div className="font-['DM_Sans',sans-serif] text-[#1a1208]">
 
       {/* ── Header ── */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex items-start justify-between mb-5 sm:mb-6">
         <div>
-          <h1 className="text-[28px] font-bold text-[#1a1208] leading-tight">
+          <h1 className="text-[22px] sm:text-[28px] font-bold text-[#1a1208] leading-tight">
             Subscription &amp; Billing
           </h1>
           <p className="text-sm text-[#7a6a55] mt-1">
             Manage plans, track payments and subscription lifecycle
           </p>
         </div>
-        <button className="flex items-center gap-2 bg-[#c8922a] hover:bg-[#b07d20] text-white font-medium px-5 py-2.5 rounded-xl transition-colors text-sm">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <path d="M12 5v14M5 12h14" />
-          </svg>
-          Create Plan
-        </button>
       </div>
 
-      {/* ── Plan Cards ── */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        {PLANS.map((plan) => (
+      {/* ── Plan Cards
+            mobile:  1 col (full-width scroll)
+            sm:      2 cols
+            lg:      4 cols
+      ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {plans.map((plan, i) => (
           <div
-            key={plan.id}
+            key={i}
             className={`bg-white rounded-2xl p-5 flex flex-col relative
               ${plan.popular
                 ? "border-2 border-[#c8922a] shadow-sm"
@@ -196,10 +159,12 @@ export default function SubscriptionsPage() {
             {/* Plan name */}
             <p className="text-base font-semibold text-[#1a1208] mb-1 mt-1">{plan.name}</p>
 
-            {/* Price */}
-            <div className="flex items-baseline gap-1 mb-2">
-              <span className="text-[28px] font-bold text-[#1a1208]">{plan.price}</span>
-              <span className="text-sm text-[#7a6a55]">{plan.period}</span>
+            {/* Revenue */}
+            <div className="flex items-baseline gap-1 mb-2 flex-wrap">
+              <span className="text-[26px] sm:text-[28px] font-bold text-[#1a1208]">
+                ₹{plan.revenue?.toLocaleString()}
+              </span>
+              <span className="text-sm text-[#7a6a55]">total revenue</span>
             </div>
 
             {/* Salons active */}
@@ -214,7 +179,7 @@ export default function SubscriptionsPage() {
 
             {/* Features */}
             <div className="flex flex-col gap-2 flex-1 mb-5">
-              {plan.features.map((f) => (
+              {plan.features?.map((f: string) => (
                 <div key={f} className="flex items-center gap-2 text-[13px] text-[#1a1208]">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#27ae60" strokeWidth="2.5">
                     <polyline points="20 6 9 17 4 12" />
@@ -223,35 +188,29 @@ export default function SubscriptionsPage() {
                 </div>
               ))}
             </div>
-
-            {/* Edit button */}
-            <button
-              onClick={() => setEditingPlan(plan)}
-              className="w-full flex items-center justify-center gap-2 border border-[#e8e0d4] hover:border-[#c8922a] hover:text-[#c8922a] text-[#1a1208] font-medium py-2.5 rounded-xl transition-colors text-sm"
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-              </svg>
-              Edit Plan
-            </button>
           </div>
         ))}
       </div>
 
-      {/* ── Bottom Section ── */}
-      <div className="grid gap-4" style={{ gridTemplateColumns: "1fr 1fr" }}>
+      {/* ── Bottom Section
+            mobile:  1 col stacked
+            lg:      2 cols side-by-side
+      ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
         {/* Revenue by Plan Bar Chart */}
-        <div className="bg-white border border-[#e8e0d4] rounded-2xl p-6">
-          <p className="text-lg font-bold text-[#1a1208]">Revenue by Plan</p>
-          <p className="text-xs text-[#7a6a55] mt-0.5 mb-6">Monthly recurring revenue (₹L)</p>
+        <div className="bg-white border border-[#e8e0d4] rounded-2xl p-5 sm:p-6">
+          <p className="text-base sm:text-lg font-bold text-[#1a1208]">Revenue by Plan</p>
+          <p className="text-xs text-[#7a6a55] mt-0.5 mb-5 sm:mb-6">Monthly recurring revenue (₹L)</p>
 
-          {/* Chart */}
-          <div className="w-full overflow-x-hidden">
-            <svg viewBox="0 0 480 220" className="w-full">
+          <div className="w-full overflow-x-auto">
+            <svg
+              viewBox="0 0 480 220"
+              style={{ minWidth: barData.length > 2 ? 300 : undefined }}
+              className="w-full"
+            >
               {/* Y-axis grid lines + labels */}
-              {[0, 3, 6, 9, 12].map((v, i) => {
+              {[0, 3, 6, 9, 12].map((v) => {
                 const y = 185 - (v / MAX_BAR) * 160;
                 return (
                   <g key={v}>
@@ -262,7 +221,7 @@ export default function SubscriptionsPage() {
               })}
 
               {/* Bars */}
-              {BAR_DATA.map((d, i) => {
+              {barData.map((d, i) => {
                 const bw   = 68;
                 const gap  = 28;
                 const x    = 52 + i * (bw + gap);
@@ -284,24 +243,24 @@ export default function SubscriptionsPage() {
         </div>
 
         {/* Expiring Soon */}
-        <div className="bg-white border border-[#e8e0d4] rounded-2xl p-6">
+        <div className="bg-white border border-[#e8e0d4] rounded-2xl p-5 sm:p-6">
           <div className="flex items-center justify-between mb-1">
-            <p className="text-lg font-bold text-[#1a1208]">Expiring Soon</p>
-            <span className="flex items-center gap-1.5 bg-[#fdf3e0] border border-[#f0d9b0] text-[#c8922a] text-xs font-semibold px-3 py-1 rounded-full">
+            <p className="text-base sm:text-lg font-bold text-[#1a1208]">Expiring Soon</p>
+            <span className="flex items-center gap-1.5 bg-[#fdf3e0] border border-[#f0d9b0] text-[#c8922a] text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
               </svg>
-              12 expiring
+              {expiring.length} expiring
             </span>
           </div>
-          <p className="text-xs text-[#7a6a55] mb-5">Subscriptions requiring attention</p>
+          <p className="text-xs text-[#7a6a55] mb-4 sm:mb-5">Subscriptions requiring attention</p>
 
           <div className="flex flex-col gap-0">
-            {EXPIRING.map((item, i) => (
+            {expiring.map((item, i) => (
               <div
                 key={item.id}
-                className={`flex items-center gap-3 py-4
-                  ${i < EXPIRING.length - 1 ? "border-b border-[#f0ebe3]" : ""}`}
+                className={`flex items-center gap-3 py-3.5 sm:py-4
+                  ${i < expiring.length - 1 ? "border-b border-[#f0ebe3]" : ""}`}
               >
                 {/* Avatar */}
                 <div className="w-9 h-9 rounded-full bg-[#f0ebe3] flex items-center justify-center text-[13px] font-bold text-[#7a6a55] flex-shrink-0">
@@ -310,8 +269,8 @@ export default function SubscriptionsPage() {
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-[13.5px] font-medium text-[#1a1208]">{item.name}</p>
-                  <p className="text-[11.5px] text-[#7a6a55] mt-px">{item.owner} · {item.plan}</p>
+                  <p className="text-[13.5px] font-medium text-[#1a1208] truncate">{item.name}</p>
+                  <p className="text-[11.5px] text-[#7a6a55] mt-px truncate">{item.owner} · {item.plan}</p>
                 </div>
 
                 {/* Days + Renew */}

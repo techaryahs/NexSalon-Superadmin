@@ -37,9 +37,9 @@ export default function ReportsPage() {
             Comprehensive platform analytics and downloadable reports
           </p>
         </div>
-        <button className="bg-[#c8922a] hover:bg-[#b07d20] text-white px-6 py-2.5 rounded-full text-sm font-medium transition-colors w-fit">
+        {/* <button className="bg-[#c8922a] hover:bg-[#b07d20] text-white px-6 py-2.5 rounded-full text-sm font-medium transition-colors w-fit">
           ↓ Export Report
-        </button>
+        </button> */}
       </div>
 
       {/* GRID */}

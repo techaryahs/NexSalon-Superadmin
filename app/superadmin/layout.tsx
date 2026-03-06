@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 
@@ -103,7 +103,6 @@ const NAV_SECTIONS: NavSection[] = [
           </svg>
         ),
       },
-  
       {
         id: "reports",
         label: "Reports",
@@ -115,7 +114,7 @@ const NAV_SECTIONS: NavSection[] = [
           </svg>
         ),
       },
-            {
+      {
         id: "blogs",
         label: "Blogs",
         href: "/superadmin/management/form",
@@ -126,7 +125,6 @@ const NAV_SECTIONS: NavSection[] = [
           </svg>
         ),
       },
-      
     ],
   },
   {
@@ -200,10 +198,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/superadmin/platform/users":          "Users",
   "/superadmin/platform/regions":        "Regions & Franchise",
   "/superadmin/management/commission":   "Commission & Marketplace",
-  "/superadmin/management/automation":   "Automation",
-  "/superadmin/management/ai-insights":  "AI Insights",
   "/superadmin/management/reports":      "Reports",
-  "/superadmin/management/support":      "Support",
   "/superadmin/advanced/notifications":  "Notifications",
   "/superadmin/advanced/white-label":    "White Label",
   "/superadmin/advanced/compliance":     "Compliance",
@@ -212,14 +207,15 @@ const PAGE_TITLES: Record<string, string> = {
 };
 
 /* ─────────────────────────────────────────
-   SIDEBAR
+   SIDEBAR INNER CONTENT (shared between
+   desktop sidebar and mobile drawer)
 ───────────────────────────────────────── */
-function Sidebar({
+function SidebarContent({
   collapsed,
-  onToggle,
+  onNavClick,
 }: {
   collapsed: boolean;
-  onToggle: () => void;
+  onNavClick?: () => void;
 }) {
   const pathname = usePathname();
 
@@ -227,48 +223,7 @@ function Sidebar({
     pathname === href || pathname.startsWith(href + "/");
 
   return (
-    <aside
-      className={`
-        flex flex-col flex-shrink-0 overflow-y-auto overflow-x-hidden
-        bg-[#1a1208] transition-all duration-200 ease-in-out
-        ${collapsed ? "w-[60px] min-w-[60px]" : "w-[220px] min-w-[220px]"}
-      `}
-    >
-    {/* ── Logo ── */}
-<div className="flex items-center gap-3 px-4 py-[18px] border-b border-[#2e2010] overflow-hidden flex-shrink-0">
-
-  {/* Logo Icon */}
-  <div className="w-[34px] h-[34px] flex items-center justify-center flex-shrink-0">
-    <img
-      src="/logo.png"
-      alt="NexSalon Logo"
-      className="w-full h-full object-contain"
-    />
-  </div>
-
-  {/* Logo Text */}
-  {!collapsed && (
-    <span
-      className="text-[18px] font-semibold text-white whitespace-nowrap tracking-tight"
-      style={{ fontFamily: "'DM Sans', sans-serif" }}
-    >
-      NEX<span className="text-[#e8b84b]">SALON</span>
-    </span>
-  )}
-
-  {/* Collapse Button */}
-  <button
-    onClick={onToggle}
-    title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-    className="ml-auto p-1 flex-shrink-0 bg-transparent border-none cursor-pointer
-               text-[#5a4a35] hover:text-[#c5b49a] transition-colors"
-  >
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d={collapsed ? "M9 18l6-6-6-6" : "M15 18l-6-6 6-6"} />
-    </svg>
-  </button>
-
-</div>
+    <>
       {/* ── Nav sections ── */}
       {NAV_SECTIONS.map(({ section, items }) => (
         <div key={section}>
@@ -287,6 +242,7 @@ function Sidebar({
                 key={item.id}
                 href={item.href}
                 title={collapsed ? item.label : undefined}
+                onClick={onNavClick}
                 className={`
                   flex items-center relative whitespace-nowrap overflow-hidden
                   text-[13.5px] no-underline transition-colors duration-100
@@ -335,82 +291,177 @@ function Sidebar({
           </div>
         )}
       </div>
+    </>
+  );
+}
+
+/* ─────────────────────────────────────────
+   SIDEBAR (desktop only)
+───────────────────────────────────────── */
+function Sidebar({
+  collapsed,
+  onToggle,
+}: {
+  collapsed: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <aside
+      className={`
+        hidden lg:flex flex-col flex-shrink-0 overflow-y-auto overflow-x-hidden
+        bg-[#1a1208] transition-all duration-200 ease-in-out
+        ${collapsed ? "w-[60px] min-w-[60px]" : "w-[220px] min-w-[220px]"}
+      `}
+    >
+      {/* ── Logo ── */}
+      <div className="flex items-center gap-3 px-4 py-[18px] border-b border-[#2e2010] overflow-hidden flex-shrink-0">
+        <div className="w-[34px] h-[34px] flex items-center justify-center flex-shrink-0">
+          <img
+            src="/logo.png"
+            alt="NexSalon Logo"
+            className="w-full h-full object-contain"
+          />
+        </div>
+        {!collapsed && (
+          <span
+            className="text-[18px] font-semibold text-white whitespace-nowrap tracking-tight"
+            style={{ fontFamily: "'DM Sans', sans-serif" }}
+          >
+            NEX<span className="text-[#e8b84b]">SALON</span>
+          </span>
+        )}
+      </div>
+
+      <SidebarContent collapsed={collapsed} />
     </aside>
+  );
+}
+
+/* ─────────────────────────────────────────
+   MOBILE DRAWER
+───────────────────────────────────────── */
+function MobileDrawer({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) {
+  /* Lock body scroll while drawer is open */
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [open]);
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        onClick={onClose}
+        className={`
+          fixed inset-0 z-40 bg-black/60 backdrop-blur-sm
+          transition-opacity duration-200
+          lg:hidden
+          ${open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}
+        `}
+      />
+
+      {/* Drawer panel */}
+      <div
+        className={`
+          fixed top-0 left-0 z-50 h-full w-[260px] flex flex-col
+          bg-[#1a1208] overflow-y-auto overflow-x-hidden
+          transition-transform duration-200 ease-in-out
+          lg:hidden
+          ${open ? "translate-x-0" : "-translate-x-full"}
+        `}
+      >
+        {/* Logo row with close button */}
+        <div className="flex items-center gap-3 px-4 py-[18px] border-b border-[#2e2010] flex-shrink-0">
+          <div className="w-[34px] h-[34px] flex items-center justify-center flex-shrink-0">
+            <img
+              src="/logo.png"
+              alt="NexSalon Logo"
+              className="w-full h-full object-contain"
+            />
+          </div>
+          <span
+            className="text-[18px] font-semibold text-white whitespace-nowrap tracking-tight"
+            style={{ fontFamily: "'DM Sans', sans-serif" }}
+          >
+            NEX<span className="text-[#e8b84b]">SALON</span>
+          </span>
+          {/* Close button */}
+          <button
+            onClick={onClose}
+            className="ml-auto p-1 text-[#5a4a35] hover:text-[#c5b49a] transition-colors bg-transparent border-none cursor-pointer flex-shrink-0"
+            aria-label="Close navigation"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <SidebarContent collapsed={false} onNavClick={onClose} />
+      </div>
+    </>
   );
 }
 
 /* ─────────────────────────────────────────
    TOPBAR
 ───────────────────────────────────────── */
-function Topbar({ pageTitle }: { pageTitle: string }) {
+function Topbar({
+  pageTitle,
+  onMenuClick,
+}: {
+  pageTitle: string;
+  onMenuClick: () => void;
+}) {
   return (
     <header
-      className="flex items-center gap-3.5 h-[60px] px-6 bg-white border-b border-[#e8e0d4] flex-shrink-0"
+      className="flex items-center gap-3.5 h-[60px] px-4 sm:px-6 bg-white border-b border-[#e8e0d4] flex-shrink-0"
       style={{ fontFamily: "'DM Sans', sans-serif" }}
     >
+      {/* Hamburger — mobile only */}
+      <button
+        onClick={onMenuClick}
+        className="flex lg:hidden items-center justify-center w-9 h-9 rounded-lg border border-[#e8e0d4]
+                   text-[#7a6a55] hover:border-[#c8922a] hover:text-[#c8922a] transition-colors
+                   bg-transparent cursor-pointer flex-shrink-0"
+        aria-label="Open navigation"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M3 12h18M3 6h18M3 18h18" />
+        </svg>
+      </button>
+
       {/* Page title */}
       <span
-        className="text-base font-semibold text-[#1a1208] whitespace-nowrap"
+        className="text-base font-semibold text-[#1a1208] whitespace-nowrap truncate"
         style={{ fontFamily: "'Playfair Display', serif" }}
       >
         {pageTitle}
       </span>
 
-      {/* Search */}
-      <div className="flex items-center gap-2 flex-1 max-w-[360px] bg-[#f7f4ef] border border-[#e8e0d4] rounded-lg px-3 py-[7px] text-[13px] text-[#7a6a55] cursor-pointer">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="11" cy="11" r="8" />
-          <path d="M21 21l-4.35-4.35" />
-        </svg>
-        <span>Search salons, users, invoices...</span>
-        <span className="ml-auto bg-[#e8e0d4] rounded px-1 py-px text-[10px] text-[#7a6a55]">
-          ⌘K
-        </span>
-      </div>
-
       {/* Right side */}
       <div className="ml-auto flex items-center gap-2.5">
-        {/* Quick Action */}
-        <button
-          className="flex items-center gap-1.5 bg-[#c8922a] hover:bg-[#b07d20] text-white
-                     border-none rounded-lg px-4 py-2 text-[13px] font-medium cursor-pointer transition-colors"
-          style={{ fontFamily: "'DM Sans', sans-serif" }}
-        >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <path d="M12 5v14M5 12h14" />
-          </svg>
-          Quick Action
-        </button>
-
         {/* Bell */}
-        <button className="w-9 h-9 flex items-center justify-center border border-[#e8e0d4] rounded-lg
-                           bg-transparent cursor-pointer text-[#7a6a55] hover:border-[#c8922a] hover:text-[#c8922a] transition-colors">
+        <Link
+          href="/superadmin/advanced/notifications"
+          className="w-9 h-9 flex items-center justify-center border border-[#e8e0d4] rounded-lg
+                     bg-transparent cursor-pointer text-[#7a6a55] hover:border-[#c8922a] hover:text-[#c8922a] transition-colors"
+        >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
             <path d="M13.73 21a2 2 0 0 1-3.46 0" />
           </svg>
-        </button>
-
-        {/* Settings */}
-        <button className="w-9 h-9 flex items-center justify-center border border-[#e8e0d4] rounded-lg
-                           bg-transparent cursor-pointer text-[#7a6a55] hover:border-[#c8922a] hover:text-[#c8922a] transition-colors">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-            <circle cx="12" cy="12" r="3" />
-            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14" />
-          </svg>
-        </button>
-
-        {/* Avatar chip */}
-        <div className="flex items-center gap-2 pl-1 pr-3 py-1 border border-[#e8e0d4] rounded-full
-                        cursor-pointer hover:border-[#c8922a] transition-colors">
-          <div className="w-[30px] h-[30px] rounded-full bg-[#c8922a] text-white flex items-center justify-center text-xs font-semibold">
-            SA
-          </div>
-          <div className="leading-tight">
-            <p className="text-[12.5px] font-medium text-[#1a1208]">Super Admin</p>
-            <p className="text-[10.5px] text-[#7a6a55]">Platform Owner</p>
-          </div>
-        </div>
+        </Link>
       </div>
     </header>
   );
@@ -419,7 +470,7 @@ function Topbar({ pageTitle }: { pageTitle: string }) {
 /* ─────────────────────────────────────────
    LAYOUT — default export
    Place at: app/superadmin/layout.tsx
-   
+
    ⚠️  NO <html> or <body> tags here.
        Those belong in app/layout.tsx only.
 ───────────────────────────────────────── */
@@ -429,28 +480,43 @@ export default function SuperAdminLayout({
   children: React.ReactNode;
 }) {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
   const pageTitle = PAGE_TITLES[pathname] ?? "Global Dashboard";
 
+  /* Close drawer on route change */
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
   return (
     <div className="flex min-h-screen bg-[#f7f4ef]">
-      {/* SIDEBAR */}
+      {/* DESKTOP SIDEBAR */}
       <Sidebar
         collapsed={collapsed}
         onToggle={() => setCollapsed((c) => !c)}
       />
 
+      {/* MOBILE DRAWER */}
+      <MobileDrawer
+        open={mobileOpen}
+        onClose={() => setMobileOpen(false)}
+      />
+
       {/* MAIN AREA */}
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="flex flex-col flex-1 overflow-hidden min-w-0">
         {/* TOPBAR */}
-        <Topbar pageTitle={pageTitle} />
+        <Topbar
+          pageTitle={pageTitle}
+          onMenuClick={() => setMobileOpen(true)}
+        />
 
         {/* PAGE CONTENT — injected by page.tsx */}
         <main className="flex-1 overflow-y-auto bg-[#f7f4ef]">
-  <div className="w-full px-6 sm:px-8 lg:px-10 py-6">
-    {children}
-  </div>
-</main>
+          <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-6">
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   );

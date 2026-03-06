@@ -38,6 +38,7 @@ import founderRoutes from "./routes/founder.js";
 import whiteLabelRoutes from "./routes/whiteLabelRoutes.js";
 import NotificationRoutes from "./routes/NotificationRoutes.js";
 import superadminReportRoutes from "./routes/superadminreportRoutes.js";
+import superadminsubscriptionRoutes from "./routes/superadminsubscriptionRoutes.js";
 
 dotenv.config();
 
@@ -144,6 +145,7 @@ app.use("/api/founder", founderRoutes);
 app.use("/api/white-label", whiteLabelRoutes);
 app.use("/api/superadmin", NotificationRoutes);
 app.use("/api/report", superadminReportRoutes);
+app.use("/api", superadminsubscriptionRoutes);
 
 /* -------------------- SERVER -------------------- */
 app.listen(env.PORT, () => {

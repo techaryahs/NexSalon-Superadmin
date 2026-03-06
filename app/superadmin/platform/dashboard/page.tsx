@@ -138,16 +138,6 @@ const TOP_SALONS: Salon[] = [
   { rank: 5, name: "The Refinery",       city: "Chennai",   revenue: "₹1.2L", trend: "+22%", up: true  },
 ];
 
-/* ─────────────────────────────────────────
-   SYSTEM HEALTH DATA
-───────────────────────────────────────── */
-const HEALTH: HealthItem[] = [
-  { label: "API",     pct: 99.9, color: "#22c55e" },
-  { label: "DB",      pct: 99.7, color: "#22c55e" },
-  { label: "Storage", pct: 98.4, color: "#c8922a" },
-  { label: "CDN",     pct: 99.8, color: "#22c55e" },
-];
-
 /* ───────────────────────────────────────── CHART DATA ───────────────────────────────────────── */
 const MONTHS      = ["Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb"];
 const REVENUE_PTS = [340, 320, 305, 295, 285, 265, 230];
@@ -176,7 +166,7 @@ function Card({ children, className = "" }: { children: React.ReactNode; classNa
         background: "#ffffff",
         border: "1px solid #e8e0d0",
         borderRadius: 16,
-        padding: 24,
+        padding: 20,
         boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
       }}
       className={className}
@@ -190,14 +180,14 @@ function Card({ children, className = "" }: { children: React.ReactNode; classNa
 function IconBubble({ gold, children }: { gold?: boolean; children: React.ReactNode }) {
   return (
     <div style={{
-      width: 44,
-      height: 44,
+      width: 40,
+      height: 40,
       borderRadius: "50%",
       background: gold ? "#c8922a" : "#f0ebe0",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      fontSize: 20,
+      fontSize: 18,
       flexShrink: 0,
     }}>
       {children}
@@ -210,14 +200,14 @@ function StatCard({ stat }: { stat: Stat }) {
   return (
     <Card>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <span style={{ fontSize: 13, color: "#7a6a50", fontWeight: 500 }}>{stat.label}</span>
+        <span style={{ fontSize: 12, color: "#7a6a50", fontWeight: 500, lineHeight: 1.3 }}>{stat.label}</span>
         <IconBubble gold={stat.gold}>{stat.icon}</IconBubble>
       </div>
       <div style={{
-        fontSize: 30,
+        fontSize: 26,
         fontWeight: 700,
         color: stat.gold ? "#c8922a" : "#1a1208",
-        marginTop: 10,
+        marginTop: 8,
         letterSpacing: "-0.5px",
       }}>
         {stat.value}
@@ -364,7 +354,7 @@ function SubGrowthBars() {
 
   return (
     <div style={{ overflowX: "auto" }}>
-      <svg viewBox="0 0 430 120" style={{ width: "100%", minWidth: 300 }}>
+      <svg viewBox="0 0 430 120" style={{ width: "100%", minWidth: 280 }}>
         {/* Y labels */}
         {[80, 320].map((v, i) => {
           const y = barH - (v / maxVal) * barH + 10;
@@ -457,7 +447,7 @@ export default function DashboardPage() {
 
   const s = stats || {};
 
-  const STATS: Stat[] = [
+  const DYNAMIC_STATS: Stat[] = [
     {
       label: "Total Salons & Spas",
       value: s.totalSalonsAndSpas?.toString() || "0",
@@ -508,218 +498,290 @@ export default function DashboardPage() {
     },
   ];
 
+  const displayStats = stats ? DYNAMIC_STATS : STATS;
+  const displaySalons = topSalons.length > 0 ? topSalons : TOP_SALONS;
+
   return (
-    <div style={{
-      minHeight: "100vh",
-      background: "#f5f0e8",
-      padding: "36px 32px",
-      fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
-    }}>
-
-      {/* Greeting */}
-      <div style={{ marginBottom: 10 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 800, color: "#1a1208", margin: 0, letterSpacing: "-0.5px" }}>
-          Good morning, Admin ✦
-        </h1>
-        <p style={{ color: "#7a6a50", margin: "6px 0 0", fontSize: 14 }}>
-          Here's what's happening across your platform today.
-        </p>
-      </div>
-
-      {/* Alert Banner */}
-      <div style={{
-        background: "#fdf8ee",
-        border: "1px solid #e8d89a",
-        borderRadius: 12,
-        padding: "14px 20px",
-        margin: "20px 0",
-        fontSize: 13,
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-      }}>
-        <span style={{ color: "#5a4a30" }}>
-          <span style={{ color: "#c8922a" }}>⚠</span>
-          {"  "}
-          <strong style={{ color: "#c8922a" }}>{s.pendingApprovals || 0} salons</strong>
-          {" are pending approval · "}
-          <strong style={{ color: "#c8922a" }}>{s.pendingAppointments || 0} appointments</strong>
-          {" are pending"}
-        </span>
-        <span style={{ color: "#c8922a", fontWeight: 600, cursor: "pointer", fontSize: 13 }}>
-          Review Now →
-        </span>
-      </div>
-
-      {/* Stats Grid — 2 rows × 4 cols */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
-        {STATS.map((st, i) => <StatCard key={i} stat={st} />)}
-      </div>
-
-      {/* Revenue Chart + Plan Distribution */}
-      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16, marginBottom: 20 }}>
-
-        {/* Revenue Chart */}
-        <Card>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-            <div>
-              <div style={{ color: "#1a1208", fontWeight: 700, fontSize: 17 }}>Revenue Overview</div>
-              <div style={{ color: "#9a8a70", fontSize: 12, marginTop: 2 }}>Monthly platform revenue & subscriptions</div>
-            </div>
-            <span style={{
-              background: "#f0ebe0",
-              border: "1px solid #e0d8c8",
-              borderRadius: 20,
-              padding: "4px 14px",
-              color: "#7a6a50",
-              fontSize: 12,
-              fontWeight: 500,
-            }}>
-              {chartPeriod}
-            </span>
-          </div>
-          <RevenueChart />
-        </Card>
-
-        {/* Plan Distribution */}
-        <Card>
-          <div style={{ color: "#1a1208", fontWeight: 700, fontSize: 17, marginBottom: 2 }}>Plan Distribution</div>
-          <div style={{ color: "#9a8a70", fontSize: 12, marginBottom: 16 }}>Active subscription tiers</div>
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
-            <DonutChart plans={plans} />
-          </div>
-          {plans.map((p) => (
-            <div key={p.label} style={{ display: "flex", justifyContent: "space-between", marginBottom: 10, alignItems: "center" }}>
-              <span style={{ display: "flex", alignItems: "center", gap: 8, color: "#7a6a50", fontSize: 13 }}>
-                <span style={{ width: 10, height: 10, borderRadius: "50%", background: p.color, display: "inline-block", flexShrink: 0 }} />
-                {p.label}
-              </span>
-              <span style={{ color: "#1a1208", fontWeight: 700, fontSize: 14 }}>{p.count}</span>
-            </div>
-          ))}
-        </Card>
-      </div>
-
-      {/* Top Performing Salons + System Health + Subscription Growth */}
-      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16 }}>
-
-        {/* Top Performing Salons */}
-        <Card>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-            <div>
-              <div style={{ color: "#1a1208", fontWeight: 700, fontSize: 17 }}>Top Performing Salons</div>
-              <div style={{ color: "#9a8a70", fontSize: 12, marginTop: 2 }}>By revenue this month</div>
-            </div>
-            <span style={{ color: "#c8922a", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>View All →</span>
-          </div>
-
-          {topSalons.map((salon) => (
-            <div key={salon.rank} style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 14,
-              padding: "12px 0",
-              borderBottom: "1px solid #f0ebe0",
-            }}>
-              {/* Rank badge */}
-              <div style={{
-                width: 36,
-                height: 36,
-                borderRadius: 10,
-                background: salon.rank === 1 ? "#c8922a" : "#f0ebe0",
-                color: salon.rank === 1 ? "#ffffff" : "#7a6a50",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontWeight: 700,
-                fontSize: 12,
-                flexShrink: 0,
-              }}>
-                #{salon.rank}
-              </div>
-
-              {/* Avatar circle */}
-              <div style={{
-                width: 36,
-                height: 36,
-                borderRadius: "50%",
-                background: "#f0ebe0",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 16,
-                flexShrink: 0,
-              }}>
-                ✂
-              </div>
-
-              {/* Name + city */}
-              <div style={{ flex: 1 }}>
-                <div style={{ color: "#1a1208", fontWeight: 600, fontSize: 14 }}>{salon.name}</div>
-                <div style={{ color: "#9a8a70", fontSize: 12, marginTop: 1 }}>{salon.city}</div>
-              </div>
-
-              {/* Revenue + trend */}
-              <div style={{ textAlign: "right" }}>
-                <div style={{ color: "#1a1208", fontWeight: 700, fontSize: 14 }}>{salon.revenue}</div>
-                <div style={{ color: salon.up ? "#22c55e" : "#ef4444", fontSize: 12, marginTop: 1, fontWeight: 600 }}>
-                  {salon.trend}
-                </div>
-              </div>
-            </div>
-          ))}
-        </Card>
-
-        {/* Right column */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-
-          {/* System Health */}
-          <Card>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-              <div style={{ color: "#1a1208", fontWeight: 700, fontSize: 17 }}>System Health</div>
-              <span style={{
-                background: "#f0fdf4",
-                color: "#16a34a",
-                border: "1px solid #bbf7d0",
-                borderRadius: 20,
-                padding: "3px 10px",
-                fontSize: 12,
-                fontWeight: 600,
-              }}>
-                ● Operational
-              </span>
-            </div>
-            <SystemHealthGrid />
-          </Card>
-
-          {/* Subscription Growth */}
-          <Card>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <div style={{ color: "#1a1208", fontWeight: 700, fontSize: 17 }}>Subscription Growth</div>
-              <span style={{
-                background: "#f0ebe0",
-                border: "1px solid #e0d8c8",
-                borderRadius: 20,
-                padding: "3px 10px",
-                color: "#c8922a",
-                fontSize: 12,
-                fontWeight: 600,
-              }}>
-                +19% MoM
-              </span>
-            </div>
-            <SubGrowthBars />
-          </Card>
-        </div>
-      </div>
-
-      {/* fadeUp keyframes */}
+    <>
       <style>{`
         @keyframes fadeUp {
           from { opacity: 0; transform: translateY(16px); }
           to   { opacity: 1; transform: translateY(0);    }
         }
+
+        .dashboard-root {
+          min-height: 100vh;
+          background: #f5f0e8;
+          font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        /* ── Stats grid ── */
+        .stats-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 14px;
+          margin-bottom: 20px;
+        }
+
+        /* ── Revenue + Plan row ── */
+        .rev-plan-grid {
+          display: grid;
+          grid-template-columns: 2fr 1fr;
+          gap: 16px;
+          margin-bottom: 20px;
+        }
+
+        /* ── Bottom row ── */
+        .bottom-grid {
+          display: grid;
+          grid-template-columns: 2fr 1fr;
+          gap: 16px;
+        }
+
+        .right-col {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        /* ── Tablet: 768–1023px ── */
+        @media (max-width: 1023px) {
+          .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+          .rev-plan-grid {
+            grid-template-columns: 1fr;
+          }
+          .bottom-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        /* ── Mobile: <640px ── */
+        @media (max-width: 639px) {
+          .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+          }
+          .rev-plan-grid {
+            gap: 12px;
+            margin-bottom: 12px;
+          }
+          .bottom-grid {
+            gap: 12px;
+          }
+        }
+
+        /* ── Very small: <400px ── */
+        @media (max-width: 399px) {
+          .stats-grid {
+            grid-template-columns: 1fr 1fr;
+          }
+        }
+
+        /* Plan distribution — side-by-side on tablet */
+        .plan-inner {
+          display: flex;
+          align-items: center;
+          gap: 24px;
+        }
+        .plan-list {
+          flex: 1;
+        }
+        @media (max-width: 639px) {
+          .plan-inner {
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+          }
+          .plan-list {
+            width: 100%;
+          }
+        }
       `}</style>
-    </div>
+
+      <div className="dashboard-root">
+
+        {/* Greeting */}
+        <div style={{ marginBottom: 16 }}>
+          <h1 style={{ fontSize: "clamp(20px, 5vw, 28px)", fontWeight: 800, color: "#1a1208", margin: 0, letterSpacing: "-0.5px" }}>
+            Good morning, SuperAdmin ✦
+          </h1>
+          <p style={{ color: "#7a6a50", margin: "6px 0 0", fontSize: 14 }}>
+            Here's what's happening across your platform today.
+          </p>
+        </div>
+
+        {/* Stats Grid — 4 cols desktop, 2 cols tablet+mobile */}
+        <div className="stats-grid">
+          {displayStats.map((st, i) => <StatCard key={i} stat={st} />)}
+        </div>
+
+        {/* Revenue Chart + Plan Distribution */}
+        <div className="rev-plan-grid">
+
+          {/* Revenue Chart */}
+          <Card>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16, gap: 8, flexWrap: "wrap" }}>
+              <div>
+                <div style={{ color: "#1a1208", fontWeight: 700, fontSize: 16 }}>Revenue Overview</div>
+                <div style={{ color: "#9a8a70", fontSize: 12, marginTop: 2 }}>Monthly platform revenue & subscriptions</div>
+              </div>
+              <span style={{
+                background: "#f0ebe0",
+                border: "1px solid #e0d8c8",
+                borderRadius: 20,
+                padding: "4px 14px",
+                color: "#7a6a50",
+                fontSize: 12,
+                fontWeight: 500,
+                whiteSpace: "nowrap",
+                flexShrink: 0,
+              }}>
+                {chartPeriod}
+              </span>
+            </div>
+            <RevenueChart />
+          </Card>
+
+          {/* Plan Distribution */}
+          <Card>
+            <div style={{ color: "#1a1208", fontWeight: 700, fontSize: 16, marginBottom: 2 }}>Plan Distribution</div>
+            <div style={{ color: "#9a8a70", fontSize: 12, marginBottom: 16 }}>Active subscription tiers</div>
+            <div className="plan-inner">
+              <div style={{ display: "flex", justifyContent: "center", flexShrink: 0 }}>
+                <DonutChart plans={plans} />
+              </div>
+              <div className="plan-list">
+                {plans.map((p) => (
+                  <div key={p.label} style={{ display: "flex", justifyContent: "space-between", marginBottom: 10, alignItems: "center" }}>
+                    <span style={{ display: "flex", alignItems: "center", gap: 8, color: "#7a6a50", fontSize: 13 }}>
+                      <span style={{ width: 10, height: 10, borderRadius: "50%", background: p.color, display: "inline-block", flexShrink: 0 }} />
+                      {p.label}
+                    </span>
+                    <span style={{ color: "#1a1208", fontWeight: 700, fontSize: 14 }}>{p.count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Top Performing Salons + System Health + Subscription Growth */}
+        <div className="bottom-grid">
+
+          {/* Top Performing Salons */}
+          <Card>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, gap: 8 }}>
+              <div>
+                <div style={{ color: "#1a1208", fontWeight: 700, fontSize: 16 }}>Top Performing Salons</div>
+                <div style={{ color: "#9a8a70", fontSize: 12, marginTop: 2 }}>By revenue this month</div>
+              </div>
+              <span style={{ color: "#c8922a", fontSize: 13, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}>View All →</span>
+            </div>
+
+            {displaySalons.map((salon) => (
+              <div key={salon.rank} style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                padding: "11px 0",
+                borderBottom: "1px solid #f0ebe0",
+              }}>
+                {/* Rank badge */}
+                <div style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: 10,
+                  background: salon.rank === 1 ? "#c8922a" : "#f0ebe0",
+                  color: salon.rank === 1 ? "#ffffff" : "#7a6a50",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontWeight: 700,
+                  fontSize: 12,
+                  flexShrink: 0,
+                }}>
+                  #{salon.rank}
+                </div>
+
+                {/* Avatar circle */}
+                <div style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: "50%",
+                  background: "#f0ebe0",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 15,
+                  flexShrink: 0,
+                }}>
+                  ✂
+                </div>
+
+                {/* Name + city */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ color: "#1a1208", fontWeight: 600, fontSize: 13, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{salon.name}</div>
+                  <div style={{ color: "#9a8a70", fontSize: 11, marginTop: 1 }}>{salon.city}</div>
+                </div>
+
+                {/* Revenue + trend */}
+                <div style={{ textAlign: "right", flexShrink: 0 }}>
+                  <div style={{ color: "#1a1208", fontWeight: 700, fontSize: 13 }}>{salon.revenue}</div>
+                  <div style={{ color: salon.up ? "#22c55e" : "#ef4444", fontSize: 11, marginTop: 1, fontWeight: 600 }}>
+                    {salon.trend}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </Card>
+
+          {/* Right column */}
+          <div className="right-col">
+
+            {/* System Health */}
+            <Card>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, flexWrap: "wrap", gap: 8 }}>
+                <div style={{ color: "#1a1208", fontWeight: 700, fontSize: 16 }}>System Health</div>
+                <span style={{
+                  background: "#f0fdf4",
+                  color: "#16a34a",
+                  border: "1px solid #bbf7d0",
+                  borderRadius: 20,
+                  padding: "3px 10px",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  whiteSpace: "nowrap",
+                }}>
+                  ● Operational
+                </span>
+              </div>
+              <SystemHealthGrid />
+            </Card>
+
+            {/* Subscription Growth */}
+            <Card>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
+                <div style={{ color: "#1a1208", fontWeight: 700, fontSize: 16 }}>Subscription Growth</div>
+                <span style={{
+                  background: "#f0ebe0",
+                  border: "1px solid #e0d8c8",
+                  borderRadius: 20,
+                  padding: "3px 10px",
+                  color: "#c8922a",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  whiteSpace: "nowrap",
+                }}>
+                  +19% MoM
+                </span>
+              </div>
+              <SubGrowthBars />
+            </Card>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }

@@ -19,7 +19,7 @@ interface Salon {
   plan:           Plan;
   branches:       number;
   activeBranches: number;
-  revenue:        string;          // formatted by frontend
+  revenue:        string;
   rating:         number | null;
   status:         Status;
   type:           BusinessType;
@@ -32,7 +32,7 @@ interface Summary {
   suspended: number;
 }
 
-const ITEMS_PER_PAGE = 10; // matches backend default
+const ITEMS_PER_PAGE = 10;
 
 /* ─────────────────────────────────────────
    HELPERS
@@ -211,7 +211,6 @@ function Pagination({
   perPage:    number;
   onPage:     (p: number) => void;
 }) {
-  /* Build visible page numbers with ellipsis */
   const pages: (number | "…")[] = [];
   if (totalPages <= 7) {
     for (let i = 1; i <= totalPages; i++) pages.push(i);
@@ -227,12 +226,12 @@ function Pagination({
   const end   = Math.min(page * perPage, total);
 
   return (
-    <div className="flex items-center justify-between px-6 py-4 border-t border-[#e8e0d4]">
-      <p className="text-[13px] text-[#7a6a55]">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 sm:px-6 py-4 border-t border-[#e8e0d4]">
+      <p className="text-[13px] text-[#7a6a55] order-2 sm:order-1">
         {total === 0 ? "No results" : `Showing ${start}–${end} of ${total} entries`}
       </p>
 
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 order-1 sm:order-2">
         {/* Prev */}
         <button
           onClick={() => onPage(page - 1)}
@@ -279,6 +278,91 @@ function Pagination({
 }
 
 /* ─────────────────────────────────────────
+   MOBILE SALON CARD
+   Shown instead of table rows on small screens
+───────────────────────────────────────── */
+function SalonCard({
+  salon,
+  onView,
+  onReactivate,
+  onSuspend,
+}: {
+  salon:        Salon;
+  onView:       (s: Salon) => void;
+  onReactivate: (s: Salon) => void;
+  onSuspend:    (s: Salon) => void;
+}) {
+  return (
+    <div className="p-4 border-b border-[#f0ebe3] last:border-0">
+      {/* Top row: avatar + name + actions */}
+      <div className="flex items-start gap-3">
+        <div className="w-10 h-10 rounded-full bg-[#f0ebe3] flex items-center justify-center text-[14px] font-bold text-[#7a6a55] flex-shrink-0">
+          {salon.name[0]?.toUpperCase()}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-[14px] font-semibold text-[#1a1208] truncate">{salon.name}</p>
+          <p className="text-[12px] text-[#7a6a55]">{salon.owner} · {salon.city}</p>
+        </div>
+        {/* Action buttons */}
+        <div className="flex items-center gap-3 flex-shrink-0 pt-0.5">
+          <button onClick={() => onView(salon)} title="View details" className="text-[#b0a090] hover:text-[#1a1208] transition-colors">
+            <EyeIcon />
+          </button>
+          <button onClick={() => onReactivate(salon)} title="Reactivate" className="text-[#b0a090] hover:text-[#27ae60] transition-colors">
+            <RefreshIcon />
+          </button>
+          <button
+            onClick={() => onSuspend(salon)}
+            title={salon.status === "Suspended" ? "Unsuspend" : "Suspend"}
+            className={`transition-colors ${salon.status === "Suspended" ? "text-[#c0392b]" : "text-[#b0a090] hover:text-[#c0392b]"}`}
+          >
+            <BanIcon />
+          </button>
+        </div>
+      </div>
+
+      {/* Badges row */}
+      <div className="flex flex-wrap gap-2 mt-3">
+        <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${
+          salon.type === "Spa" ? "bg-[#eaf0ff] text-[#3b5bdb] border-[#c7d2fe]" : "bg-[#f0ebe3] text-[#7a6a55] border-[#e8e0d4]"
+        }`}>
+          {salon.type}
+        </span>
+        <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${planColors[salon.plan]}`}>
+          {salon.plan}
+        </span>
+        <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${statusStyles[salon.status]}`}>
+          {salon.status}
+        </span>
+      </div>
+
+      {/* Stats row */}
+      <div className="grid grid-cols-3 gap-2 mt-3">
+        <div className="bg-[#fdf9f4] rounded-lg px-3 py-2 text-center">
+          <p className="text-[13px] font-bold text-[#1a1208]">{salon.revenue}</p>
+          <p className="text-[10px] text-[#7a6a55] mt-0.5">Revenue</p>
+        </div>
+        <div className="bg-[#fdf9f4] rounded-lg px-3 py-2 text-center">
+          <p className="text-[13px] font-bold text-[#1a1208]">{salon.branches}</p>
+          <p className="text-[10px] text-[#7a6a55] mt-0.5">Branches</p>
+        </div>
+        <div className="bg-[#fdf9f4] rounded-lg px-3 py-2 text-center">
+          {salon.rating !== null ? (
+            <div className="flex items-center justify-center gap-1">
+              <StarIcon />
+              <p className="text-[13px] font-bold text-[#1a1208]">{salon.rating}</p>
+            </div>
+          ) : (
+            <p className="text-[13px] font-bold text-[#b0a090]">N/A</p>
+          )}
+          <p className="text-[10px] text-[#7a6a55] mt-0.5">Rating</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────
    MAIN PAGE
 ───────────────────────────────────────── */
 export default function SalonsPage() {
@@ -287,7 +371,6 @@ export default function SalonsPage() {
   const [typeFilter, setTypeFilter] = useState<BusinessType | null>(null);
   const [page,       setPage]       = useState(1);
 
-  // Data from server
   const [salons,     setSalons]     = useState<Salon[]>([]);
   const [summary,    setSummary]    = useState<Summary>({ total: 0, active: 0, pending: 0, suspended: 0 });
   const [total,      setTotal]      = useState(0);
@@ -297,7 +380,7 @@ export default function SalonsPage() {
   const [loading,    setLoading]    = useState(true);
   const [error,      setError]      = useState<string | null>(null);
 
-  /* ── Fetch from API with pagination ── */
+  /* ── Fetch ── */
   const fetchSalons = useCallback(async (currentPage: number) => {
     setLoading(true);
     setError(null);
@@ -308,7 +391,6 @@ export default function SalonsPage() {
       if (!res.ok) throw new Error(`Server error: ${res.status}`);
       const data = await res.json();
 
-      // Handle both { salons: [...] } and plain array responses
       const raw: any[] = Array.isArray(data) ? data : (data.salons ?? []);
 
       const mapped: Salon[] = raw.map((item: any, idx: number) => ({
@@ -320,7 +402,6 @@ export default function SalonsPage() {
         plan:           normalizePlan(item.plan ?? item.planName ?? ""),
         branches:       Number(item.branches       ?? item.branchCount ?? 0),
         activeBranches: Number(item.activeBranches ?? 0),
-        // revenue may come as raw number or pre-formatted string
         revenue:
           item.revenue != null
             ? typeof item.revenue === "number"
@@ -333,11 +414,7 @@ export default function SalonsPage() {
       }));
 
       setSalons(mapped);
-
-      // Use server-provided summary if available, else compute from full list
-      if (data.summary) {
-        setSummary(data.summary);
-      }
+      if (data.summary) setSummary(data.summary);
       setTotal(data.total ?? mapped.length);
       setTotalPages(data.totalPages ?? 1);
     } catch (err: any) {
@@ -348,11 +425,9 @@ export default function SalonsPage() {
     }
   }, []);
 
-  useEffect(() => {
-    fetchSalons(page);
-  }, [page, fetchSalons]);
+  useEffect(() => { fetchSalons(page); }, [page, fetchSalons]);
 
-  /* ── Client-side filtering (on current page data) ── */
+  /* ── Client-side filtering ── */
   const filtered = salons.filter((s) => {
     const matchSearch =
       s.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -366,44 +441,25 @@ export default function SalonsPage() {
   /* ── Handlers ── */
   const handleFilterChange = (f: Filter) => { setFilter(f); setPage(1); };
   const handleSearch       = (val: string) => { setSearch(val); setPage(1); };
-  const handleTypeFilter   = (t: BusinessType) => {
-    setTypeFilter((prev) => (prev === t ? null : t));
-    setPage(1);
-  };
+  const handleTypeFilter   = (t: BusinessType) => { setTypeFilter((prev) => (prev === t ? null : t)); setPage(1); };
 
-  /* ── Optimistic status updates ── */
   const handleReactivate = async (salon: Salon) => {
-    setSalons((prev) =>
-      prev.map((s) => (s.id === salon.id ? { ...s, status: "Active" } : s))
-    );
+    setSalons((prev) => prev.map((s) => (s.id === salon.id ? { ...s, status: "Active" } : s)));
     try {
-      await fetch(
-        `http://localhost:3001/api/salon/salons/${salon.firebaseId}/status`,
-        { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "active" }) }
-      );
-    } catch {
-      // revert on failure
-      fetchSalons(page);
-    }
+      await fetch(`http://localhost:3001/api/salon/salons/${salon.firebaseId}/status`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "active" }),
+      });
+    } catch { fetchSalons(page); }
   };
 
   const handleSuspend = async (salon: Salon) => {
     const newStatus: Status = salon.status === "Suspended" ? "Active" : "Suspended";
-    setSalons((prev) =>
-      prev.map((s) => (s.id === salon.id ? { ...s, status: newStatus } : s))
-    );
+    setSalons((prev) => prev.map((s) => (s.id === salon.id ? { ...s, status: newStatus } : s)));
     try {
-      await fetch(
-        `http://localhost:3001/api/salon/salons/${salon.firebaseId}/status`,
-        {
-          method:  "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body:    JSON.stringify({ status: newStatus.toLowerCase() }),
-        }
-      );
-    } catch {
-      fetchSalons(page);
-    }
+      await fetch(`http://localhost:3001/api/salon/salons/${salon.firebaseId}/status`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: newStatus.toLowerCase() }),
+      });
+    } catch { fetchSalons(page); }
   };
 
   const FILTERS: Filter[] = ["All", "Active", "Pending", "Suspended"];
@@ -414,28 +470,26 @@ export default function SalonsPage() {
       <div className="font-['DM_Sans',sans-serif] text-[#1a1208]">
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h1 className="text-[28px] font-bold text-[#1a1208] leading-tight">Salon &amp; Spa Management</h1>
+            <h1 className="text-[22px] sm:text-[28px] font-bold text-[#1a1208] leading-tight">Salon &amp; Spa Management</h1>
             <p className="text-sm text-[#7a6a55] mt-1">Manage all registered salons and spas on the platform</p>
           </div>
         </div>
-        <div className="grid grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
           {["Total", "Active", "Pending", "Suspended"].map((label) => (
-            <div key={label} className="bg-white border border-[#e8e0d4] rounded-xl p-5 text-center animate-pulse">
+            <div key={label} className="bg-white border border-[#e8e0d4] rounded-xl p-4 sm:p-5 text-center animate-pulse">
               <div className="h-8 bg-[#f0ebe3] rounded mx-auto w-12 mb-2" />
               <p className="text-sm text-[#7a6a55]">{label}</p>
             </div>
           ))}
         </div>
         <div className="bg-white border border-[#e8e0d4] rounded-2xl">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="px-6 py-4 border-b border-[#f0ebe3] animate-pulse flex gap-4 items-center">
-              <div className="w-9 h-9 rounded-full bg-[#f0ebe3]" />
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="px-4 py-4 border-b border-[#f0ebe3] animate-pulse flex gap-3 items-center">
+              <div className="w-9 h-9 rounded-full bg-[#f0ebe3] flex-shrink-0" />
               <div className="flex-1 space-y-2">
                 <div className="h-3 bg-[#f0ebe3] rounded w-40" />
                 <div className="h-2.5 bg-[#f5f0ea] rounded w-28" />
               </div>
-              <div className="h-3 bg-[#f0ebe3] rounded w-16" />
-              <div className="h-3 bg-[#f0ebe3] rounded w-16" />
               <div className="h-3 bg-[#f0ebe3] rounded w-16" />
             </div>
           ))}
@@ -451,10 +505,7 @@ export default function SalonsPage() {
         <div className="bg-white border border-[#fdecea] rounded-2xl p-12 text-center">
           <p className="text-[#c0392b] font-medium mb-2">Failed to load salons</p>
           <p className="text-sm text-[#7a6a55] mb-4">{error}</p>
-          <button
-            onClick={() => fetchSalons(page)}
-            className="bg-[#c8922a] text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-[#b07d20] transition-colors"
-          >
+          <button onClick={() => fetchSalons(page)} className="bg-[#c8922a] text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-[#b07d20] transition-colors">
             Retry
           </button>
         </div>
@@ -466,41 +517,37 @@ export default function SalonsPage() {
     <div className="font-['DM_Sans',sans-serif] text-[#1a1208]">
 
       {/* ── Header ── */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex items-start justify-between mb-5 sm:mb-6">
         <div>
-          <h1 className="text-[28px] font-bold text-[#1a1208] leading-tight">
+          <h1 className="text-[22px] sm:text-[28px] font-bold text-[#1a1208] leading-tight">
             Salon &amp; Spa Management
           </h1>
           <p className="text-sm text-[#7a6a55] mt-1">
             Manage all registered salons and spas on the platform
           </p>
         </div>
-        <button className="flex items-center gap-2 bg-[#c8922a] hover:bg-[#b07d20] text-white font-medium px-5 py-2.5 rounded-xl transition-colors text-sm">
-          <PlusIcon />
-          Add Salon
-        </button>
       </div>
 
-      {/* ── Summary Cards ── */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      {/* ── Summary Cards — 2 cols mobile, 4 cols desktop ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-5 sm:mb-6">
         {[
           { label: "Total",     value: summary.total,     cls: "text-[#1a1208]" },
           { label: "Active",    value: summary.active,    cls: statusCountColors.Active },
           { label: "Pending",   value: summary.pending,   cls: statusCountColors.Pending },
           { label: "Suspended", value: summary.suspended, cls: statusCountColors.Suspended },
         ].map(({ label, value, cls }) => (
-          <div key={label} className="bg-white border border-[#e8e0d4] rounded-xl p-5 text-center">
-            <p className={`text-3xl font-bold ${cls}`}>{value}</p>
-            <p className="text-sm text-[#7a6a55] mt-1">{label}</p>
+          <div key={label} className="bg-white border border-[#e8e0d4] rounded-xl p-4 sm:p-5 text-center">
+            <p className={`text-2xl sm:text-3xl font-bold ${cls}`}>{value}</p>
+            <p className="text-xs sm:text-sm text-[#7a6a55] mt-1">{label}</p>
           </div>
         ))}
       </div>
 
       {/* ── Search + Filters ── */}
-      <div className="flex flex-wrap items-center gap-4 mb-6">
+      <div className="flex flex-col gap-3 mb-5 sm:mb-6">
 
-        {/* Search */}
-        <div className="flex items-center gap-2 bg-white border border-[#e8e0d4] rounded-xl px-4 py-2.5 w-72 text-sm text-[#7a6a55]">
+        {/* Search — full width on mobile */}
+        <div className="flex items-center gap-2 bg-white border border-[#e8e0d4] rounded-xl px-4 py-2.5 text-sm text-[#7a6a55] w-full sm:w-72">
           <SearchIcon />
           <input
             type="text"
@@ -511,13 +558,13 @@ export default function SalonsPage() {
           />
         </div>
 
-        {/* Status Filter */}
-        <div className="flex items-center gap-2">
+        {/* Filter chips row — scrollable on mobile */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-0.5 scrollbar-hide">
           {FILTERS.map((f) => (
             <button
               key={f}
               onClick={() => handleFilterChange(f)}
-              className={`px-4 py-2 rounded-xl text-sm font-medium border transition-colors
+              className={`px-3 sm:px-4 py-2 rounded-xl text-sm font-medium border transition-colors whitespace-nowrap flex-shrink-0
                 ${filter === f
                   ? "bg-[#c8922a] text-white border-[#c8922a]"
                   : "bg-white text-[#7a6a55] border-[#e8e0d4] hover:border-[#c8922a] hover:text-[#c8922a]"
@@ -526,15 +573,16 @@ export default function SalonsPage() {
               {f}
             </button>
           ))}
-        </div>
 
-        {/* Business Type Filter */}
-        <div className="flex items-center gap-2">
+          {/* Divider */}
+          <span className="w-px h-5 bg-[#e8e0d4] flex-shrink-0" />
+
+          {/* Business type */}
           {(["Salon", "Spa"] as BusinessType[]).map((t) => (
             <button
               key={t}
               onClick={() => handleTypeFilter(t)}
-              className={`px-4 py-2 rounded-xl text-sm font-medium border transition-colors
+              className={`px-3 sm:px-4 py-2 rounded-xl text-sm font-medium border transition-colors whitespace-nowrap flex-shrink-0
                 ${typeFilter === t
                   ? "bg-[#c8922a] text-white border-[#c8922a]"
                   : "bg-white text-[#7a6a55] border-[#e8e0d4] hover:border-[#c8922a] hover:text-[#c8922a]"
@@ -543,134 +591,141 @@ export default function SalonsPage() {
               {t}
             </button>
           ))}
-        </div>
 
-        {/* Active filter indicator */}
-        {(filter !== "All" || typeFilter || search) && (
-          <button
-            onClick={() => { setFilter("All"); setTypeFilter(null); setSearch(""); setPage(1); }}
-            className="text-xs text-[#c0392b] border border-[#f5c6c2] bg-[#fdecea] px-3 py-1.5 rounded-xl hover:bg-[#f9d9d7] transition-colors"
-          >
-            Clear filters ✕
-          </button>
-        )}
+          {/* Clear */}
+          {(filter !== "All" || typeFilter || search) && (
+            <button
+              onClick={() => { setFilter("All"); setTypeFilter(null); setSearch(""); setPage(1); }}
+              className="text-xs text-[#c0392b] border border-[#f5c6c2] bg-[#fdecea] px-3 py-1.5 rounded-xl hover:bg-[#f9d9d7] transition-colors whitespace-nowrap flex-shrink-0"
+            >
+              Clear ✕
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* ── Table ── */}
+      {/* ── Table / Cards ── */}
       <div className="bg-white border border-[#e8e0d4] rounded-2xl overflow-hidden">
 
-        {/* Table header */}
-        <div className="grid grid-cols-[2.5fr_0.8fr_1fr_1fr_1fr_0.8fr_1fr_1fr] px-6 py-3 border-b border-[#e8e0d4] bg-[#fdf9f4]">
-          {["SALON / OWNER", "TYPE", "PLAN", "BRANCHES", "REVENUE", "RATING", "STATUS", "ACTIONS"].map((h) => (
-            <p key={h} className="text-[11px] font-semibold tracking-wider text-[#7a6a55] uppercase">
-              {h}
-            </p>
-          ))}
+        {/* ── DESKTOP TABLE (md and up) ── */}
+        <div className="hidden md:block">
+          {/* Table header */}
+          <div className="grid grid-cols-[2.5fr_0.8fr_1fr_1fr_1fr_0.8fr_1fr_1fr] px-6 py-3 border-b border-[#e8e0d4] bg-[#fdf9f4]">
+            {["SALON / OWNER", "TYPE", "PLAN", "BRANCHES", "REVENUE", "RATING", "STATUS", "ACTIONS"].map((h) => (
+              <p key={h} className="text-[11px] font-semibold tracking-wider text-[#7a6a55] uppercase">
+                {h}
+              </p>
+            ))}
+          </div>
+
+          {/* Rows */}
+          {filtered.length === 0 ? (
+            <div className="py-16 text-center text-[#7a6a55] text-sm">
+              No salons found matching your criteria.
+            </div>
+          ) : (
+            filtered.map((salon, i) => (
+              <div
+                key={salon.firebaseId}
+                className={`grid grid-cols-[2.5fr_0.8fr_1fr_1fr_1fr_0.8fr_1fr_1fr] px-6 py-4 items-center
+                  ${i < filtered.length - 1 ? "border-b border-[#f0ebe3]" : ""}
+                  hover:bg-[#fdf9f4] transition-colors`}
+              >
+                {/* Salon name + owner */}
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-[#f0ebe3] flex items-center justify-center text-[13px] font-bold text-[#7a6a55] flex-shrink-0">
+                    {salon.name[0]?.toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="text-[13.5px] font-medium text-[#1a1208]">{salon.name}</p>
+                    <p className="text-[11.5px] text-[#7a6a55]">{salon.owner} · {salon.city}</p>
+                  </div>
+                </div>
+
+                {/* Type */}
+                <div>
+                  <span className={`text-xs font-medium px-3 py-1 rounded-full border ${
+                    salon.type === "Spa"
+                      ? "bg-[#eaf0ff] text-[#3b5bdb] border-[#c7d2fe]"
+                      : "bg-[#f0ebe3] text-[#7a6a55] border-[#e8e0d4]"
+                  }`}>
+                    {salon.type}
+                  </span>
+                </div>
+
+                {/* Plan */}
+                <div>
+                  <span className={`text-xs font-medium px-3 py-1 rounded-full border ${planColors[salon.plan]}`}>
+                    {salon.plan}
+                  </span>
+                </div>
+
+                {/* Branches */}
+                <div>
+                  <p className="text-[13.5px] text-[#1a1208] font-medium">{salon.branches}</p>
+                  {salon.activeBranches > 0 && (
+                    <p className="text-[11px] text-[#27ae60]">{salon.activeBranches} active</p>
+                  )}
+                </div>
+
+                {/* Revenue */}
+                <p className="text-[13.5px] font-semibold text-[#1a1208]">{salon.revenue}</p>
+
+                {/* Rating */}
+                <div className="flex items-center gap-1">
+                  {salon.rating !== null ? (
+                    <><StarIcon /><span className="text-[13.5px] text-[#1a1208]">{salon.rating}</span></>
+                  ) : (
+                    <span className="text-[13px] text-[#b0a090]">N/A</span>
+                  )}
+                </div>
+
+                {/* Status */}
+                <div>
+                  <span className={`text-xs font-medium px-3 py-1 rounded-full border ${statusStyles[salon.status]}`}>
+                    {salon.status}
+                  </span>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-3">
+                  <button onClick={() => setViewSalon(salon)} title="View details" className="text-[#b0a090] hover:text-[#1a1208] transition-colors">
+                    <EyeIcon />
+                  </button>
+                  <button onClick={() => handleReactivate(salon)} title="Reactivate" className="text-[#b0a090] hover:text-[#27ae60] transition-colors">
+                    <RefreshIcon />
+                  </button>
+                  <button
+                    onClick={() => handleSuspend(salon)}
+                    title={salon.status === "Suspended" ? "Unsuspend" : "Suspend"}
+                    className={`transition-colors ${salon.status === "Suspended" ? "text-[#c0392b]" : "text-[#b0a090] hover:text-[#c0392b]"}`}
+                  >
+                    <BanIcon />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
-        {/* Rows */}
-        {filtered.length === 0 ? (
-          <div className="py-16 text-center text-[#7a6a55] text-sm">
-            No salons found matching your criteria.
-          </div>
-        ) : (
-          filtered.map((salon, i) => (
-            <div
-              key={salon.firebaseId}
-              className={`grid grid-cols-[2.5fr_0.8fr_1fr_1fr_1fr_0.8fr_1fr_1fr] px-6 py-4 items-center
-                ${i < filtered.length - 1 ? "border-b border-[#f0ebe3]" : ""}
-                hover:bg-[#fdf9f4] transition-colors`}
-            >
-              {/* Salon name + owner */}
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-[#f0ebe3] flex items-center justify-center text-[13px] font-bold text-[#7a6a55] flex-shrink-0">
-                  {salon.name[0]?.toUpperCase()}
-                </div>
-                <div>
-                  <p className="text-[13.5px] font-medium text-[#1a1208]">{salon.name}</p>
-                  <p className="text-[11.5px] text-[#7a6a55]">{salon.owner} · {salon.city}</p>
-                </div>
-              </div>
-
-              {/* Type */}
-              <div>
-                <span className={`text-xs font-medium px-3 py-1 rounded-full border ${
-                  salon.type === "Spa"
-                    ? "bg-[#eaf0ff] text-[#3b5bdb] border-[#c7d2fe]"
-                    : "bg-[#f0ebe3] text-[#7a6a55] border-[#e8e0d4]"
-                }`}>
-                  {salon.type}
-                </span>
-              </div>
-
-              {/* Plan */}
-              <div>
-                <span className={`text-xs font-medium px-3 py-1 rounded-full border ${planColors[salon.plan]}`}>
-                  {salon.plan}
-                </span>
-              </div>
-
-              {/* Branches: total / active */}
-              <div>
-                <p className="text-[13.5px] text-[#1a1208] font-medium">{salon.branches}</p>
-                {salon.activeBranches > 0 && (
-                  <p className="text-[11px] text-[#27ae60]">{salon.activeBranches} active</p>
-                )}
-              </div>
-
-              {/* Revenue */}
-              <p className="text-[13.5px] font-semibold text-[#1a1208]">{salon.revenue}</p>
-
-              {/* Rating */}
-              <div className="flex items-center gap-1">
-                {salon.rating !== null ? (
-                  <>
-                    <StarIcon />
-                    <span className="text-[13.5px] text-[#1a1208]">{salon.rating}</span>
-                  </>
-                ) : (
-                  <span className="text-[13px] text-[#b0a090]">N/A</span>
-                )}
-              </div>
-
-              {/* Status */}
-              <div>
-                <span className={`text-xs font-medium px-3 py-1 rounded-full border ${statusStyles[salon.status]}`}>
-                  {salon.status}
-                </span>
-              </div>
-
-              {/* Actions */}
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setViewSalon(salon)}
-                  title="View details"
-                  className="text-[#b0a090] hover:text-[#1a1208] transition-colors"
-                >
-                  <EyeIcon />
-                </button>
-                <button
-                  onClick={() => handleReactivate(salon)}
-                  title="Reactivate"
-                  className="text-[#b0a090] hover:text-[#27ae60] transition-colors"
-                >
-                  <RefreshIcon />
-                </button>
-                <button
-                  onClick={() => handleSuspend(salon)}
-                  title={salon.status === "Suspended" ? "Unsuspend" : "Suspend"}
-                  className={`transition-colors ${
-                    salon.status === "Suspended"
-                      ? "text-[#c0392b]"
-                      : "text-[#b0a090] hover:text-[#c0392b]"
-                  }`}
-                >
-                  <BanIcon />
-                </button>
-              </div>
+        {/* ── MOBILE CARDS (below md) ── */}
+        <div className="md:hidden">
+          {filtered.length === 0 ? (
+            <div className="py-12 text-center text-[#7a6a55] text-sm">
+              No salons found matching your criteria.
             </div>
-          ))
-        )}
+          ) : (
+            filtered.map((salon) => (
+              <SalonCard
+                key={salon.firebaseId}
+                salon={salon}
+                onView={setViewSalon}
+                onReactivate={handleReactivate}
+                onSuspend={handleSuspend}
+              />
+            ))
+          )}
+        </div>
 
         {/* ── Pagination ── */}
         <Pagination

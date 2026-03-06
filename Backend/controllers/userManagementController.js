@@ -29,15 +29,32 @@ export const getAllPlatformUsers = async (req, res) => {
         initials: getInitials(user.name),
       };
     });
-
-    // --- Pagination ---
+    
+        // --- Pagination ---
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.max(1, parseInt(req.query.limit) || 7);
-    const totalUsers = allUsers.length;
+     const search = (req.query.search || "").toLowerCase();
+     
+    // --- Search Filtering ---
+let filteredUsers = allUsers;
+
+if (search) {
+  filteredUsers = allUsers.filter((user) =>
+    user.name.toLowerCase().includes(search) ||
+    user.email.toLowerCase().includes(search) ||
+    user.role.toLowerCase().includes(search) ||
+    user.company.toLowerCase().includes(search)
+  );
+}
+
+    // const totalUsers = allUsers.length;
+    const totalUsers = filteredUsers.length;
     const totalPages = Math.ceil(totalUsers / limit);
     const startIndex = (page - 1) * limit;
     const endIndex = startIndex + limit;
-    const users = allUsers.slice(startIndex, endIndex);
+    // const users = allUsers.slice(startIndex, endIndex);
+    const users = filteredUsers.slice(startIndex, endIndex);
+   
 
     return res.status(200).json({
       users,
