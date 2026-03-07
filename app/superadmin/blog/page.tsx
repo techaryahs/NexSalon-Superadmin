@@ -1,4 +1,5 @@
 "use client";
+export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
@@ -16,6 +17,7 @@ type Blog = {
   date?: string;
   excerpt?: string;
 };
+
 
 export default function BlogPage() {
   const params = useParams();
