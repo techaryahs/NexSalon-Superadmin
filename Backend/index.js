@@ -58,7 +58,11 @@ const allowedOrigins = [
   "http://127.0.0.1:5173",
   "https://adminglowbiz.vercel.app",
   "https://customerglowbiz.vercel.app",
-  "https://nexsalon.vercel.app"
+  "https://nexsalon.vercel.app",
+    // ✅ ADD THESE
+  "https://super-six-flax.vercel.app",
+  "https://super-ibobrnsto-sunayanaaryahsworld-alts-projects.vercel.app",
+  "https://sunayanaaryahsworld-alts-projects.vercel.app"
 
 ];
 
