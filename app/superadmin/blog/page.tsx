@@ -6,25 +6,42 @@ import { useEffect, useState } from "react";
 
 const BLOGS_PER_PAGE = 3;
 
+type Blog = {
+  id?: string;
+  slug?: string;
+  title?: string;
+  category?: string;
+  image?: string;
+  author?: string;
+  date?: string;
+  excerpt?: string;
+};
+
 export default function BlogPage() {
   const params = useParams();
   const searchParams = useSearchParams();
-  const locale = params?.locale as string;
+ const locale =
+  typeof params?.locale === "string"
+    ? params.locale
+    : "en";
 
   const activeCategory = searchParams.get("category");
   const currentPage = Number(searchParams.get("page")) || 1;
 
-  const [blogs, setBlogs] = useState<any[]>([]);
+ const [blogs, setBlogs] = useState<Blog[]>([]);
   const [loading, setLoading] = useState(true);
+  const API_URL =
+  process.env.NEXT_PUBLIC_API_BLOG ||
+  "http://localhost:3001/api/blog/all";
 
   // ✅ Fetch Blogs from Backend
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
-        const res = await fetch("http://localhost:3001/api/blog/all");
+      const res = await fetch(API_URL);
         const data = await res.json();
         setBlogs(data.blogs || []);
-      } catch (err) {
+      } catch (err: any) {
         console.error("Error fetching blogs:", err);
       } finally {
         setLoading(false);
@@ -32,21 +49,26 @@ export default function BlogPage() {
     };
 
     fetchBlogs();
-  }, []);
+ }, [API_URL]);
 
   // ✅ Dynamic categories from backend blogs
-  const categories = Array.from(
-    new Set(blogs.map((blog) => blog.category))
-  );
+ const categories = Array.from(
+  new Set(
+    blogs
+      .map((blog) => blog.category)
+      .filter((c): c is string => Boolean(c))
+  )
+);
 
   // ✅ Filter by category
   const filteredBlogs = activeCategory
-    ? blogs.filter(
-        (blog) =>
-          blog.category.toLowerCase() ===
+  ? blogs.filter(
+      (blog) =>
+        blog.category &&
+        blog.category.toLowerCase() ===
           activeCategory.toLowerCase()
-      )
-    : blogs;
+    )
+  : blogs;
 
   // ✅ Pagination
   const totalPages = Math.ceil(
@@ -111,13 +133,13 @@ export default function BlogPage() {
 
               {paginatedBlogs.map((blog) => (
                 <Link
-                  key={blog.id}
+                  key={blog.id || blog.slug}
                   href={`/${locale}/blog/${blog.slug}`}
                   className="group block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition"
                 >
                   <img
-                    src={blog.image}
-                    alt={blog.title}
+                    src={blog.image || "/placeholder.png"}
+                    alt={blog.title || "blog"}
                     className="h-60 w-full object-cover group-hover:scale-105 transition"
                   />
                   <div className="p-6">

@@ -6,18 +6,33 @@ import {
 } from "lucide-react";
 
 const FounderModePage = () => {
-  const [dbData, setDbData] = useState<any>(null);
+type FounderData = {
+  mrr?: number | string;
+  arr?: number | string;
+  churnRate?: string;
+  ltv?: number | string;
+  cac?: number | string;
+  activeSubscriptions?: number;
+  totalAdmins?: number;
+};
+
+const [dbData, setDbData] = useState<FounderData | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("http://localhost:3001/api/founder/metrics");
+       const API_URL =
+  process.env.NEXT_PUBLIC_API_FOUNDER ||
+  "http://localhost:3001/api/founder/metrics";
+  const response = await fetch(API_URL);
         const result = await response.json();
         if (result.success) setDbData(result.data);
-      } catch (e) { console.error("Error fetching founder data", e); }
+    }catch (e: unknown) {
+  console.error("Error fetching founder data", e);
+}
     };
     fetchData();
-  }, []);
+ }, []);
 
   // Update KPI data with database values if they exist
   const KPIS = [
@@ -29,11 +44,18 @@ const FounderModePage = () => {
     { title: "LTV:CAC Ratio", value: "76:1", growth: "+18% MoM", icon: ArrowUpRight, highlight: true },
   ];
 
-  const RETENTION = [
-    { quarter: "Current", value: dbData ? Math.round((dbData.activeSubscriptions / dbData.totalAdmins) * 100) : 95 },
-    { quarter: "Q3 2024", value: 93 },
-    { quarter: "Q2 2024", value: 88 },
-  ];
+ const RETENTION = [
+  {
+    quarter: "Current",
+    value: dbData?.activeSubscriptions && dbData?.totalAdmins
+      ? Math.round(
+          (dbData.activeSubscriptions / dbData.totalAdmins) * 100
+        )
+      : 95,
+  },
+  { quarter: "Q3 2024", value: 93 },
+  { quarter: "Q2 2024", value: 88 },
+];
 
   return (
     <div className="w-full p-4 lg:p-8">

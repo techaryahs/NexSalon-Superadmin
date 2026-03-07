@@ -3,11 +3,32 @@
 import { useEffect, useState, useCallback } from "react";
 import { RefreshCw, AlertCircle } from "lucide-react";
 
-const API_URL = "http://localhost:3001/api/system/metrics";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_BASE_SYSTEM ||
+  "http://localhost:3001/api/system/metrics";
+  
+  type Metric = {
+  label: string;
+  value: string | number;
+  color?: string;
+};
+
+type Service = {
+  name: string;
+  status: string;
+  latency: string;
+  uptime: string;
+};
 
 export default function SystemMonitorPage() {
   // Initialize with empty arrays to prevent .map() errors
-  const [data, setData] = useState({ metrics: [], services: [] });
+  const [data, setData] = useState<{
+  metrics: Metric[];
+  services: Service[];
+}>({
+  metrics: [],
+  services: [],
+});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,13 +49,14 @@ export default function SystemMonitorPage() {
       } else {
         throw new Error(result.message || "Failed to parse data");
       }
-    } catch (err) {
-      setError(err.message);
-      console.error("Fetch Error:", err);
-    } finally {
+    } catch (err: any) {
+  setError(err?.message || "Fetch failed");
+  console.error("Fetch Error:", err);
+}
+finally {
       setLoading(false);
     }
-  }, []);
+ }, [API_URL]);
 
   useEffect(() => {
     fetchSystemData();
@@ -76,7 +98,7 @@ export default function SystemMonitorPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
         {data.metrics.length > 0 ? data.metrics.map((metric, index) => (
           <div key={index} className="bg-[#f9f7f4] border border-[#eee7dc] rounded-2xl p-6 shadow-sm text-center">
-            <h2 className={`text-2xl font-bold ${metric.color}`}>{metric.value}</h2>
+           <h2 className={`text-2xl font-bold ${metric.color || ""}`}>{metric.value}</h2>
             <p className="text-sm text-[#7a6a55] mt-2">{metric.label}</p>
           </div>
         )) : (

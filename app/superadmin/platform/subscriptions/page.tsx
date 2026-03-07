@@ -12,6 +12,7 @@ interface Plan {
   salons: number;
   features: string[];
   popular?: boolean;
+    revenue?: number;   // ✅ ADD THIS
 }
 
 interface ExpiringItem {
@@ -94,28 +95,38 @@ function EditModal({ plan, onClose }: { plan: Plan; onClose: () => void }) {
 export default function SubscriptionsPage() {
   const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
   const [renewed, setRenewed]         = useState<number[]>([]);
-  const [plans, setPlans]             = useState<any[]>([]);
-  const [expiring, setExpiring]       = useState<any[]>([]);
-  const [barData, setBarData]         = useState<any[]>([]);
+const [plans, setPlans] = useState<Plan[]>([]);
+const [expiring, setExpiring] = useState<ExpiringItem[]>([]);
+const [barData, setBarData] = useState<{ label: string; value: number }[]>([]);
 
   const handleRenew = (id: number) => setRenewed((prev) => [...prev, id]);
 
-  const MAX_BAR = Math.max(...barData.map((d) => d.value), 10);
+ const MAX_BAR =
+  barData.length > 0
+    ? Math.max(...barData.map((d) => d.value), 10)
+    : 10;
+    
+useEffect(() => {
+  const fetchDashboard = async () => {
+    try {
+      const res = await fetch(
+        "http://localhost:3001/api/superadminsubscriptions/dashboard"
+      );
 
-  useEffect(() => {
-    const fetchDashboard = async () => {
-      try {
-        const res  = await fetch("http://localhost:3001/api/superadminsubscriptions/dashboard");
-        const data = await res.json();
-        setPlans(data.plans || []);
-        setExpiring(data.expiring || []);
-        setBarData(data.revenueByPlan || []);
-      } catch (err) {
-        console.error("Dashboard fetch error", err);
-      }
-    };
-    fetchDashboard();
-  }, []);
+      const data = await res.json();
+
+      setPlans(data.plans || []);
+      setExpiring(data.expiring || []);
+      setBarData(data.revenueByPlan || []);
+
+    } catch (err: unknown) {
+      console.error("Dashboard fetch error", err);
+    }
+  };
+
+  fetchDashboard();
+
+}, []);
 
   return (
     <div className="font-['DM_Sans',sans-serif] text-[#1a1208]">
@@ -162,7 +173,7 @@ export default function SubscriptionsPage() {
             {/* Revenue */}
             <div className="flex items-baseline gap-1 mb-2 flex-wrap">
               <span className="text-[26px] sm:text-[28px] font-bold text-[#1a1208]">
-                ₹{plan.revenue?.toLocaleString()}
+               ₹{plan.revenue ? plan.revenue.toLocaleString() : 0}
               </span>
               <span className="text-sm text-[#7a6a55]">total revenue</span>
             </div>

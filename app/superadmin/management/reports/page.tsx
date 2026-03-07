@@ -2,7 +2,17 @@
 
 import React from "react";
 
-const PEAK_HOURS = [
+type PeakHour = {
+  label: string;
+  value: number;
+};
+
+type Service = {
+  name: string;
+  value: number;
+};
+
+const PEAK_HOURS: PeakHour[] = [
   { label: "9am", value: 420 },
   { label: "11am", value: 820 },
   { label: "1pm", value: 640 },
@@ -11,7 +21,7 @@ const PEAK_HOURS = [
   { label: "7pm", value: 490 },
 ];
 
-const TOP_SERVICES = [
+const TOP_SERVICES: Service[] = [
   { name: "Haircut", value: 42840 },
   { name: "Color", value: 18920 },
   { name: "Facial", value: 22410 },
@@ -20,9 +30,12 @@ const TOP_SERVICES = [
 ];
 
 export default function ReportsPage() {
-  const maxServiceValue = Math.max(...TOP_SERVICES.map((s) => s.value));
-  const maxBookings = 1000;
-  const maxCustomers = 1.4;
+const maxServiceValue =
+  TOP_SERVICES.length > 0
+    ? Math.max(...TOP_SERVICES.map((s) => s.value))
+    : 1;
+ const maxBookings: number = 1000;
+const maxCustomers: number = 1.4;
 
   return (
     <div className="min-h-screen bg-[#f5f1ea] pt-4 pb-8 font-sans text-[#1a1208] w-full">

@@ -2,12 +2,16 @@
 
 import { useEffect, useState, useCallback } from "react";
 
-const API_BASE = "http://localhost:3001/api/superadmin/notifications";
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_NOTIFICATIONS ||
+  "http://localhost:3001/api/superadmin/notifications";
 const PAGE_SIZE = 10;
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatDate(timestamp: number) {
+function formatDate(timestamp?: number) {
+  if (!timestamp) return "—";
+
   return new Date(timestamp).toLocaleString("en-IN", {
     day: "2-digit",
     month: "short",
@@ -17,7 +21,9 @@ function formatDate(timestamp: number) {
   });
 }
 
-function timeAgo(timestamp: number) {
+function timeAgo(timestamp?: number) {
+  if (!timestamp) return "—";
+
   const seconds = Math.floor((Date.now() - timestamp) / 1000);
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(minutes / 60);
@@ -41,7 +47,7 @@ interface Notification {
   type: string;
   title: string;
   message: string;
-  createdAt: number;
+  createdAt?: number;
 }
 
 interface ApiResponse {
@@ -116,9 +122,9 @@ export default function NotificationsPage() {
         setHasNext(data.hasNextPage);
         setHasPrev(data.hasPrevPage);
       } catch (err: any) {
-        setError(err.message || "Failed to load notifications");
-        setNotifications([]);
-      } finally {
+  setError(err?.message || "Failed to load notifications");
+  setNotifications([]);
+}finally {
         setLoading(false);
       }
     },

@@ -18,8 +18,15 @@ import {
   ResponsiveContainer
 } from 'recharts';
 
+type Stat = {
+  label: string;
+  value: string;
+  icon: React.ElementType;
+  gold?: boolean;
+};
+
 // --- Mock Data ---
-const STATS = [
+const STATS: Stat[] = [
   { label: 'Total Regions',     value: '18',   icon: MapPin    },
   { label: 'Franchise Groups',  value: '7',    icon: Building2 },
   { label: 'Regional Managers', value: '18',   icon: Users     },

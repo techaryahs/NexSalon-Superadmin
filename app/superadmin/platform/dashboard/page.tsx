@@ -1,6 +1,17 @@
 //.........................................................................................................................//
 "use client";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import type { ReactNode } from "react";
+
+type DashboardStats = {
+  totalSalonsAndSpas?: number;
+  totalBranches?: number;
+  totalCustomers?: number;
+  totalRevenue?: number;
+  activeSubscriptions?: number;
+  pendingApprovals?: number;
+  mrr?: number;
+};
 
 /* ───────────────────────────────────────── TYPES ───────────────────────────────────────── */
 interface Stat {
@@ -151,6 +162,10 @@ const PLAN_COLORS: Record<string, string> = {
   Trial:      "#e8d5b0",
 };
 
+const API_URL =
+  process.env.NEXT_PUBLIC_API_DASHBOARD ||
+  "http://localhost:3001/api/superdashboard/dashboard";
+  
 /* ───────────────────────────────────────── HELPERS ───────────────────────────────────────── */
 function formatINR(amount: number): string {
   if (amount >= 100000) return `₹${(amount / 100000).toFixed(1)}L`;
@@ -159,7 +174,7 @@ function formatINR(amount: number): string {
 }
 
 /* ───────────────────────────────────────── CARD COMPONENT ───────────────────────────────────────── */
-function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
     <div
       style={{
@@ -349,7 +364,11 @@ function SystemHealthGrid() {
 
 /* ───────────────────────────────────────── SUBSCRIPTION GROWTH BARS ───────────────────────────────────────── */
 function SubGrowthBars() {
-  const maxVal = Math.max(...BAR_DATA);
+  const maxVal =
+  BAR_DATA.length > 0
+    ? Math.max(...BAR_DATA)
+    : 1;
+    
   const barH   = 90;
 
   return (
@@ -390,7 +409,7 @@ function SubGrowthBars() {
 /* ───────────────────────────────────────── DASHBOARD PAGE ───────────────────────────────────────── */
 export default function DashboardPage() {
   const [chartPeriod] = useState("Last 7 Months");
-  const [stats,      setStats]      = useState<any>(null);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
   const [plans,      setPlans]      = useState<Plan[]>([]);
   const [topSalons,  setTopSalons]  = useState<Salon[]>([]);
   const [loading,    setLoading]    = useState(true);
@@ -398,13 +417,14 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const res  = await fetch("http://localhost:3001/api/superdashboard/dashboard");
+      const res  = await fetch(API_URL);
         const data = await res.json();
 
         setStats(data.stats);
 
         // Build plan array for donut
-        const pd = data.planDistribution || {};
+       const pd: Record<string, number> =
+  data.planDistribution || {};
         setPlans(
           Object.entries(pd)
             .filter(([, count]) => (count as number) > 0)
@@ -435,7 +455,7 @@ export default function DashboardPage() {
     };
 
     fetchDashboard();
-  }, []);
+}, [API_URL]);
 
   if (loading) {
     return (

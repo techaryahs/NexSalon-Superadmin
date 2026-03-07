@@ -391,7 +391,9 @@ export default function SalonsPage() {
       if (!res.ok) throw new Error(`Server error: ${res.status}`);
       const data = await res.json();
 
-      const raw: any[] = Array.isArray(data) ? data : (data.salons ?? []);
+     const raw = Array.isArray(data)
+  ? data
+  : (data.salons ?? []);
 
       const mapped: Salon[] = raw.map((item: any, idx: number) => ({
         id:             item.id         ?? idx + 1,
@@ -417,13 +419,15 @@ export default function SalonsPage() {
       if (data.summary) setSummary(data.summary);
       setTotal(data.total ?? mapped.length);
       setTotalPages(data.totalPages ?? 1);
-    } catch (err: any) {
+   } catch (err: unknown) {
       console.error("Error fetching salons:", err);
-      setError(err.message || "Failed to load salons");
+     setError(
+  err instanceof Error ? err.message : "Failed"
+);
     } finally {
       setLoading(false);
     }
-  }, []);
+}, []);
 
   useEffect(() => { fetchSalons(page); }, [page, fetchSalons]);
 

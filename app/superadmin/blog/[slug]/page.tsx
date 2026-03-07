@@ -47,8 +47,8 @@ export default async function BlogDetail({
           {blog.image && (
             <div className="mb-10">
               <img
-                src={blog.image}
-                alt={blog.title}
+               src={blog.image || "/placeholder.png"}
+          alt={blog.title || "blog"}
                 className="w-full h-auto rounded-3xl object-cover max-h-[600px]"
               />
             </div>

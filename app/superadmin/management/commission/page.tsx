@@ -2,18 +2,30 @@
 
 import { useState } from "react";
 
+type Stat = {
+  label: string;
+  value: string;
+  icon: string;
+  gold?: boolean;
+};
+type Service = {
+  name: string;
+  tx: string;
+  payout: string;
+  rate: string;
+};
+
 /* ─────────────────────────────────────────
    DATA
 ───────────────────────────────────────── */
-
-const STATS = [
+const STATS: Stat[] = [
   { label: "Total Payouts (Feb)",  value: "₹4.2L",  icon: "₹", gold: true },
   { label: "Avg Commission Rate",  value: "11.4%",  icon: "%"              },
   { label: "Pending Payouts",      value: "₹0.8L",  icon: "↓"              },
   { label: "Commission Revenue",   value: "₹2.78L", icon: "↗"              },
 ];
 
-const SERVICES = [
+const SERVICES: Service[] = [
   { name: "Haircut",    tx: "8,420", payout: "₹1.01L", rate: "12%" },
   { name: "Hair Color", tx: "3,240", payout: "₹0.49L", rate: "15%" },
   { name: "Facial",     tx: "5,610", payout: "₹0.56L", rate: "10%" },
@@ -21,8 +33,8 @@ const SERVICES = [
   { name: "Massage",    tx: "4,120", payout: "₹0.49L", rate: "12%" },
 ];
 
-const MONTHS  = ["Oct", "Nov", "Dec", "Jan", "Feb"];
-const PAYOUTS = [2, 2.7, 3.3, 3.0, 4.1];
+const MONTHS: string[] = ["Oct", "Nov", "Dec", "Jan", "Feb"];
+const PAYOUTS: number[] = [2, 2.7, 3.3, 3.0, 4.1];
 
 /* ─────────────────────────────────────────
    PAGE

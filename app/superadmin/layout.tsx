@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 /* ─────────────────────────────────────────
    TYPES
@@ -477,12 +478,14 @@ function Topbar({
 export default function SuperAdminLayout({
   children,
 }: {
-  children: React.ReactNode;
+ children: ReactNode;
 }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
-  const pageTitle = PAGE_TITLES[pathname] ?? "Global Dashboard";
+ const pageTitle =
+  PAGE_TITLES[pathname as keyof typeof PAGE_TITLES] ??
+  "Global Dashboard";
 
   /* Close drawer on route change */
   useEffect(() => {

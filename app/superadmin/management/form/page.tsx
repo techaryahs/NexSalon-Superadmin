@@ -1,7 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
+
+type BlogForm = {
+  title: string;
+  slug: string;
+  excerpt: string;
+  category: string;
+  content: string;
+  author: string;
+  date: string;
+};
 
 const BLOG_CATEGORIES = [
   "Business",
@@ -14,9 +24,12 @@ const BLOG_CATEGORIES = [
 export default function BlogFormPage() {
   const router = useRouter();
   const params = useParams();
-  const locale = params?.locale as string;
+  const locale =
+  typeof params?.locale === "string"
+    ? params.locale
+    : "en";
 
-  const [form, setForm] = useState({
+ const [form, setForm] = useState<BlogForm>({
     title: "",
     slug: "",
     excerpt: "",
@@ -70,11 +83,14 @@ export default function BlogFormPage() {
       formData.append("author", form.author);
       formData.append("date", form.date);
       formData.append("image", imageFile);
-
-      const res = await fetch("http://localhost:3001/api/blog/create", {
-        method: "POST",
-        body: formData,
-      });
+const API_URL =
+  process.env.NEXT_PUBLIC_API_BLOG_CREATE ||
+  "http://localhost:3001/api/blog/create";
+  
+      const res = await fetch(API_URL, {
+  method: "POST",
+  body: formData,
+});
 
       if (!res.ok) {
         const err = await res.json();
@@ -83,7 +99,7 @@ export default function BlogFormPage() {
       }
 
       router.push(`/${locale}/blog`);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       alert("Error creating blog");
     } finally {
