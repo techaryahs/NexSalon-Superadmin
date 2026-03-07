@@ -32,6 +32,11 @@ interface Summary {
   suspended: number;
 }
 
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:3001/api";
+  
+  
 const ITEMS_PER_PAGE = 10;
 
 /* ─────────────────────────────────────────
@@ -450,7 +455,7 @@ export default function SalonsPage() {
   const handleReactivate = async (salon: Salon) => {
     setSalons((prev) => prev.map((s) => (s.id === salon.id ? { ...s, status: "Active" } : s)));
     try {
-      await fetch(`http://localhost:3001/api/salon/salons/${salon.firebaseId}/status`, {
+      await fetch(`${API_BASE}/salon/salons/${salon.firebaseId}/status`, {
         method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "active" }),
       });
     } catch { fetchSalons(page); }
@@ -460,7 +465,7 @@ export default function SalonsPage() {
     const newStatus: Status = salon.status === "Suspended" ? "Active" : "Suspended";
     setSalons((prev) => prev.map((s) => (s.id === salon.id ? { ...s, status: newStatus } : s)));
     try {
-      await fetch(`http://localhost:3001/api/salon/salons/${salon.firebaseId}/status`, {
+     await fetch(`${API_BASE}/salon/salons/${salon.firebaseId}/status`, {
         method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: newStatus.toLowerCase() }),
       });
     } catch { fetchSalons(page); }

@@ -21,9 +21,12 @@ const [dbData, setDbData] = useState<FounderData | null>(null);
   useEffect(() => {
     const fetchData = async () => {
       try {
-       const API_URL =
-  process.env.NEXT_PUBLIC_API_FOUNDER ||
-  "http://localhost:3001/api/founder/metrics";
+    const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:3001/api";
+
+const API_URL = `${API_BASE}/founder/metrics`;
+
   const response = await fetch(API_URL);
         const result = await response.json();
         if (result.success) setDbData(result.data);

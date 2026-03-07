@@ -3,9 +3,10 @@
 import { useEffect, useState, useCallback } from "react";
 import { RefreshCw, AlertCircle } from "lucide-react";
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_BASE_SYSTEM ||
-  "http://localhost:3001/api/system/metrics";
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:3001/api";
+  
   
   type Metric = {
   label: string;
@@ -36,7 +37,7 @@ export default function SystemMonitorPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(API_URL);
+      const response = await fetch(`${API_BASE}/system/metrics`);
       if (!response.ok) throw new Error(`Server responded with ${response.status}`);
       
       const result = await response.json();
@@ -56,7 +57,7 @@ export default function SystemMonitorPage() {
 finally {
       setLoading(false);
     }
- }, [API_URL]);
+ }, []);
 
   useEffect(() => {
     fetchSystemData();

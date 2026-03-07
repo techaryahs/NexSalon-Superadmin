@@ -15,16 +15,19 @@ export default function WhiteLabelPage() {
     customDomains: 0,
     themeConfigs: 0,
   });
-const API_URL =
-  process.env.NEXT_PUBLIC_API_WHITE_LABEL ||
-  "http://localhost:3001/api/white-label/stats";
+
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:3001/api";
+
+const API_URL = `${API_BASE}/white-label/stats`;
   
  useEffect(() => {
   fetch(API_URL)
     .then((res) => res.json())
     .then((data: Stats) => setStats(data))
     .catch((err: any) => console.error(err));
-}, [API_URL]);
+}, []);
 
   return (
     <div className="w-full">

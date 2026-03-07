@@ -4,6 +4,10 @@
   import { Search, Plus, Settings, Ban, ChevronRight, ChevronLeft } from 'lucide-react';
   import { useEffect, useState } from "react";
   
+  const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:3001/api";
+  
   // --- Types ---
   type UserStatus = 'active' | 'blocked' | 'pending';
   
@@ -159,7 +163,7 @@
   
     const fetchUsers = (page: number) => {
       setIsLoading(true);
-      fetch(`http://localhost:3001/api/superdashboard/users?page=${page}&limit=${USERS_PER_PAGE}&search=${search}`)
+     fetch(`${API_BASE}/superdashboard/users?page=${page}&limit=${USERS_PER_PAGE}&search=${search}`)
         .then(res => res.json())
        .then((data: { users: User[]; pagination: Pagination }) => {
           setUsers(data.users);

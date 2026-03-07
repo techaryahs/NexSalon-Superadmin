@@ -85,9 +85,12 @@ export default function BlogFormPage() {
       formData.append("author", form.author);
       formData.append("date", form.date);
       formData.append("image", imageFile);
-const API_URL =
-  process.env.NEXT_PUBLIC_API_BLOG_CREATE ||
-  "http://localhost:3001/api/blog/create";
+
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:3001/api";
+
+const API_URL = `${API_BASE}/blog/create`;
   
       const res = await fetch(API_URL, {
   method: "POST",

@@ -23,6 +23,10 @@ interface ExpiringItem {
   daysLeft: number;
 }
 
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:3001/api";
+
 /* ─────────────────────────────────────────
    EDIT PLAN MODAL
 ───────────────────────────────────────── */
@@ -110,8 +114,8 @@ useEffect(() => {
   const fetchDashboard = async () => {
     try {
       const res = await fetch(
-        "http://localhost:3001/api/superadminsubscriptions/dashboard"
-      );
+  `${API_BASE}/superadminsubscriptions/dashboard`
+);
 
       const data = await res.json();
 

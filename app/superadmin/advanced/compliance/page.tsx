@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 
 const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE ||
-  "http://localhost:3001/api/compliance";
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:3001/api";
 
 type AuditLog = {
   id?: string;
@@ -178,7 +178,7 @@ const logsPerPage = 10;
 
   try {
     const res = await fetch(
-      `${API_BASE}/logs?days=${days}&page=${currentPage}&limit=${logsPerPage}`,
+      `${API_BASE}/compliance/logs?days=${days}&page=${currentPage}&limit=${logsPerPage}`,
       { headers: { Accept: "application/json" } }
     );
 

@@ -3,8 +3,11 @@
 import { useEffect, useState, useCallback } from "react";
 
 const API_BASE =
-  process.env.NEXT_PUBLIC_API_NOTIFICATIONS ||
-  "http://localhost:3001/api/superadmin/notifications";
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:3001/api";
+
+const API_URL = `${API_BASE}/superadmin/notifications`;
+
 const PAGE_SIZE = 10;
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -107,7 +110,7 @@ export default function NotificationsPage() {
           ...(type !== "ALL" && { type }),
         });
 
-        const res = await fetch(`${API_BASE}?${params.toString()}`);
+       const res = await fetch(`${API_URL}?${params.toString()}`);
 
         if (!res.ok) {
           throw new Error(`Server returned ${res.status}`);

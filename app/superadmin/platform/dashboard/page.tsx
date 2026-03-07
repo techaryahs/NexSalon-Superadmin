@@ -162,9 +162,11 @@ const PLAN_COLORS: Record<string, string> = {
   Trial:      "#e8d5b0",
 };
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_DASHBOARD ||
-  "http://localhost:3001/api/superdashboard/dashboard";
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:3001/api";
+
+const API_URL = `${API_BASE}/superdashboard/dashboard`;
   
 /* ───────────────────────────────────────── HELPERS ───────────────────────────────────────── */
 function formatINR(amount: number): string {
