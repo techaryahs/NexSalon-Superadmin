@@ -81,15 +81,15 @@ const allowedOrigins = [
 //   },
 
 const corsOptions = {
-  origin: true,
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
 };
 
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
 
-app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
 // Handling preflight for all routes is already covered by app.use(cors(corsOptions))
 
 /* -------------------- MIDDLEWARE -------------------- */
