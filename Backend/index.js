@@ -63,7 +63,8 @@ const allowedOrigins = [
   "https://super-ibobrnsto-sunayanaaryahsworld-alts-projects.vercel.app",
   "https://sunayanaaryahsworld-alts-projects.vercel.app",
   "https://nex-tau-liard.vercel.app",
-  "https://salonn-kappa.vercel.app", // ✅ Added - was missing, causing the CORS error
+  "https://salonn-kappa.vercel.app",
+  "https://salonn-l2r0e09fd-sunayanaaryahsworld-alts-projects.vercel.app", // ✅ Added
 ];
 
 app.use(cors({
