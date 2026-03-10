@@ -4,10 +4,6 @@ import { db } from "../config/firebase.js";
 /* ─────────────────────────────────────────
    HELPERS
 ───────────────────────────────────────── */
-
-/**
- * Normalize raw plan name → "Enterprise" | "Pro" | "Starter" | "Trial" | "None"
- */
 function normalizePlan(raw = "") {
   const p = raw.toLowerCase();
   if (p.includes("enterprise"))                         return "Enterprise";
@@ -17,28 +13,20 @@ function normalizePlan(raw = "") {
   return "None";
 }
 
-/**
- * Normalize raw subscription status → "Active" | "Pending" | "Suspended"
- */
 function normalizeStatus(raw = "") {
   const s = (raw || "").toLowerCase();
   if (s === "active")                          return "Active";
   if (s === "suspended" || s === "cancelled")  return "Suspended";
-  return "Pending"; // no sub, trial, unknown
+  return "Pending";
 }
 
-/**
- * Extract city from address string e.g. "Kurla west ,Mumbai" → "Mumbai"
- */
 function cityFromAddress(address = "") {
   const parts = address.split(",");
   return parts[parts.length - 1].trim() || address.trim();
 }
 
 /* ─────────────────────────────────────────
-   GET /api/superdashboard/salons
-   Returns paginated list of all salons + spas
-   with owner, plan, status, revenue, branches
+   GET /api/salon/salons
 ───────────────────────────────────────── */
 export const getAllSalons = async (req, res) => {
   try {
@@ -52,11 +40,10 @@ export const getAllSalons = async (req, res) => {
       return res.status(404).json({ message: "No data found" });
     }
 
-    const data  = rootSnap.val();
+    const data   = rootSnap.val();
     const salons = data.salons  || {};
     const spas   = data.spas    || {};
     const admins = data.admin   || {};
-    // FIX: appointments live under appointments.salon
     const appts  = data.appointments?.salon || {};
 
     /* ── Build ownerId → admin map ── */
@@ -93,25 +80,24 @@ export const getAllSalons = async (req, res) => {
     let idx = 1;
 
     const buildEntry = (id, place, type) => {
-      const owner  = ownerMap[place.ownerId || ""] || {};
-      const sub    = owner.subscription || {};
-      // FIX: check both planName and plan fields (DB uses both)
-      const plan   = normalizePlan(sub.planName || sub.plan || "");
-      // FIX: check both status field on subscription
-      const status = normalizeStatus(sub.status || "");
-      const rev    = salonRevenue[id] || 0;
+      const ownerId = place.ownerId || "";
+      const owner   = ownerMap[ownerId] || {};
+      const sub     = owner.subscription || {};
+      const plan    = normalizePlan(sub.planName || sub.plan || "");
+      const status  = normalizeStatus(sub.status || "");
+      const rev     = salonRevenue[id] || 0;
 
       return {
         id:             idx++,
-        firebaseId:     id,
-        // FIX: DB has both "name" and "branch" fields — prefer name, fall back to branch
+        firebaseId:     id,          // salon key e.g. -OjAIH8CWeX-...
+        ownerId:        ownerId,     // ✅ include ownerId so frontend can use it for status updates
         name:           place.name || place.branch || "Unnamed",
         owner:          owner.name || owner.businessName || owner.companyName || "Unknown",
         city:           cityFromAddress(place.address || ""),
         plan,
-        branches:       branchCount[place.ownerId] || 0,
-        activeBranches: activeBranchCount[place.ownerId] || 0,
-        revenue:        rev,         // raw number; frontend formats it
+        branches:       branchCount[ownerId] || 0,
+        activeBranches: activeBranchCount[ownerId] || 0,
+        revenue:        rev,
         rating:         place.rating ? Number(place.rating) : null,
         status,
         type,
@@ -121,7 +107,7 @@ export const getAllSalons = async (req, res) => {
     Object.entries(salons).forEach(([id, s]) => result.push(buildEntry(id, s, "salon")));
     Object.entries(spas).forEach(([id, s])   => result.push(buildEntry(id, s, "spa")));
 
-    /* ── Summary counts (over full dataset, not just current page) ── */
+    /* ── Summary ── */
     const summary = {
       total:     result.length,
       active:    result.filter((s) => s.status === "Active").length,
@@ -131,8 +117,7 @@ export const getAllSalons = async (req, res) => {
 
     /* ── Paginate ── */
     const startIndex      = (pageNumber - 1) * limitNumber;
-    const endIndex        = startIndex + limitNumber;
-    const paginatedSalons = result.slice(startIndex, endIndex);
+    const paginatedSalons = result.slice(startIndex, startIndex + limitNumber);
 
     return res.status(200).json({
       salons:     paginatedSalons,
@@ -148,9 +133,9 @@ export const getAllSalons = async (req, res) => {
 };
 
 /* ─────────────────────────────────────────
-   PATCH /api/superdashboard/salons/:ownerId/status
+   PATCH /api/salon/:ownerId/status
    Body: { status: "active" | "suspended" | "cancelled" }
-   Updates the admin's subscription status
+   Updates the admin's subscription status in Firebase
 ───────────────────────────────────────── */
 export const updateSalonStatus = async (req, res) => {
   try {
@@ -166,6 +151,7 @@ export const updateSalonStatus = async (req, res) => {
       return res.status(400).json({ message: `status must be one of: ${allowed.join(", ")}` });
     }
 
+    // ✅ Update subscription status in Firebase under the admin node
     await update(ref(db, `salonandspa/admin/${ownerId}/subscription`), {
       status:    status.toLowerCase(),
       updatedAt: Date.now(),

@@ -10,7 +10,6 @@ export const getRecentNotifications = async (req, res) => {
     // --- Query params ---
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 10));
-    // Optional: filter by type e.g. ?type=NEW_ADMIN or ?type=NEW_APPOINTMENT
     const typeFilter = req.query.type ? String(req.query.type).toUpperCase() : null;
 
     let notifications = [];
@@ -20,10 +19,7 @@ export const getRecentNotifications = async (req, res) => {
       const adminSnap = await get(ref(db, "salonandspa/admin"));
 
       if (adminSnap.exists()) {
-        const admins = adminSnap.val();
-
-        Object.entries(admins).forEach(([id, admin]) => {
-          // Guard: skip non-object or missing createdAt
+        Object.entries(adminSnap.val()).forEach(([id, admin]) => {
           if (!admin || typeof admin !== "object") return;
           if (!admin.createdAt || now - admin.createdAt > threeDays) return;
 
@@ -38,36 +34,23 @@ export const getRecentNotifications = async (req, res) => {
       }
     }
 
-    // ─── 2. Fetch Appointments ──────────────────────────────────────────────
-    if (!typeFilter || typeFilter === "NEW_APPOINTMENT") {
-      const appointmentSnap = await get(
-        ref(db, "salonandspa/appointments/salon")
-      );
+    // ─── 2. Fetch Customers ─────────────────────────────────────────────────
+    // Node is "salonandspa/customer" (singular), flat structure:
+    // { uid, name, email, phone, createdAt, bookings: {...} }
+    if (!typeFilter || typeFilter === "NEW_CUSTOMER") {
+      const customerSnap = await get(ref(db, "salonandspa/customer"));
 
-      if (appointmentSnap.exists()) {
-        const salons = appointmentSnap.val();
+      if (customerSnap.exists()) {
+        Object.entries(customerSnap.val()).forEach(([id, customer]) => {
+          if (!customer || typeof customer !== "object") return;
+          if (!customer.createdAt || now - customer.createdAt > threeDays) return;
 
-        Object.values(salons).forEach((salon) => {
-          // Guard: salon must be an object (not null/string/number)
-          if (!salon || typeof salon !== "object") return;
-
-          Object.values(salon).forEach((appointment) => {
-            if (!appointment || typeof appointment !== "object") return;
-            if (
-              !appointment.createdAt ||
-              now - appointment.createdAt > threeDays
-            )
-              return;
-
-            notifications.push({
-              id: `appointment-${appointment.appointmentId || Math.random()}`,
-              type: "NEW_APPOINTMENT",
-              title: "New Appointment",
-              message: `${
-                appointment.customer?.name || "A customer"
-              } booked an appointment`,
-              createdAt: appointment.createdAt,
-            });
+          notifications.push({
+            id: `customer-${id}`,
+            type: "NEW_CUSTOMER",
+            title: "New Customer",
+            message: `${customer.name || customer.phone || "A new customer"} joined`,
+            createdAt: customer.createdAt,
           });
         });
       }

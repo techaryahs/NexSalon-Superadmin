@@ -13,6 +13,7 @@ type BusinessType = "Salon" | "Spa";
 interface Salon {
   id:             number;
   firebaseId:     string;
+  ownerId:        string; // ✅ Added — needed for status update API
   name:           string;
   owner:          string;
   city:           string;
@@ -32,10 +33,8 @@ interface Summary {
   suspended: number;
 }
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL;
-  
-  
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
 const ITEMS_PER_PAGE = 10;
 
 /* ─────────────────────────────────────────
@@ -128,13 +127,6 @@ function SearchIcon() {
     </svg>
   );
 }
-function PlusIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-      <path d="M12 5v14M5 12h14" />
-    </svg>
-  );
-}
 function ChevronLeft() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -203,29 +195,20 @@ function Modal({ salon, onClose }: { salon: Salon; onClose: () => void }) {
    PAGINATION COMPONENT
 ───────────────────────────────────────── */
 function Pagination({
-  page,
-  totalPages,
-  total,
-  perPage,
-  onPage,
+  page, totalPages, total, perPage, onPage,
 }: {
-  page:       number;
-  totalPages: number;
-  total:      number;
-  perPage:    number;
-  onPage:     (p: number) => void;
+  page: number; totalPages: number; total: number; perPage: number; onPage: (p: number) => void;
 }) {
   const pages: (number | "…")[] = [];
   if (totalPages <= 7) {
     for (let i = 1; i <= totalPages; i++) pages.push(i);
   } else {
     pages.push(1);
-    if (page > 3)            pages.push("…");
+    if (page > 3) pages.push("…");
     for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) pages.push(i);
     if (page < totalPages - 2) pages.push("…");
     pages.push(totalPages);
   }
-
   const start = Math.min((page - 1) * perPage + 1, total);
   const end   = Math.min(page * perPage, total);
 
@@ -234,46 +217,23 @@ function Pagination({
       <p className="text-[13px] text-[#7a6a55] order-2 sm:order-1">
         {total === 0 ? "No results" : `Showing ${start}–${end} of ${total} entries`}
       </p>
-
       <div className="flex items-center gap-1 order-1 sm:order-2">
-        {/* Prev */}
-        <button
-          onClick={() => onPage(page - 1)}
-          disabled={page === 1}
-          className="w-8 h-8 flex items-center justify-center rounded-full text-[#7a6a55]
-            hover:bg-[#f0ebe3] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-        >
+        <button onClick={() => onPage(page - 1)} disabled={page === 1}
+          className="w-8 h-8 flex items-center justify-center rounded-full text-[#7a6a55] hover:bg-[#f0ebe3] disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
           <ChevronLeft />
         </button>
-
-        {/* Page numbers */}
         {pages.map((p, i) =>
           p === "…" ? (
-            <span key={`ellipsis-${i}`} className="w-8 h-8 flex items-center justify-center text-[#b0a090] text-sm">
-              …
-            </span>
+            <span key={`ellipsis-${i}`} className="w-8 h-8 flex items-center justify-center text-[#b0a090] text-sm">…</span>
           ) : (
-            <button
-              key={p}
-              onClick={() => onPage(p as number)}
-              className={`w-8 h-8 rounded-full text-sm font-medium transition-colors
-                ${page === p
-                  ? "bg-[#c8922a] text-white"
-                  : "text-[#7a6a55] hover:bg-[#f0ebe3]"
-                }`}
-            >
+            <button key={p} onClick={() => onPage(p as number)}
+              className={`w-8 h-8 rounded-full text-sm font-medium transition-colors ${page === p ? "bg-[#c8922a] text-white" : "text-[#7a6a55] hover:bg-[#f0ebe3]"}`}>
               {p}
             </button>
           )
         )}
-
-        {/* Next */}
-        <button
-          onClick={() => onPage(page + 1)}
-          disabled={page === totalPages || totalPages === 0}
-          className="w-8 h-8 flex items-center justify-center rounded-full text-[#7a6a55]
-            hover:bg-[#f0ebe3] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-        >
+        <button onClick={() => onPage(page + 1)} disabled={page === totalPages || totalPages === 0}
+          className="w-8 h-8 flex items-center justify-center rounded-full text-[#7a6a55] hover:bg-[#f0ebe3] disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
           <ChevronRight />
         </button>
       </div>
@@ -283,22 +243,14 @@ function Pagination({
 
 /* ─────────────────────────────────────────
    MOBILE SALON CARD
-   Shown instead of table rows on small screens
 ───────────────────────────────────────── */
 function SalonCard({
-  salon,
-  onView,
-  onReactivate,
-  onSuspend,
+  salon, onView, onReactivate, onSuspend,
 }: {
-  salon:        Salon;
-  onView:       (s: Salon) => void;
-  onReactivate: (s: Salon) => void;
-  onSuspend:    (s: Salon) => void;
+  salon: Salon; onView: (s: Salon) => void; onReactivate: (s: Salon) => void; onSuspend: (s: Salon) => void;
 }) {
   return (
     <div className="p-4 border-b border-[#f0ebe3] last:border-0">
-      {/* Top row: avatar + name + actions */}
       <div className="flex items-start gap-3">
         <div className="w-10 h-10 rounded-full bg-[#f0ebe3] flex items-center justify-center text-[14px] font-bold text-[#7a6a55] flex-shrink-0">
           {salon.name[0]?.toUpperCase()}
@@ -307,40 +259,20 @@ function SalonCard({
           <p className="text-[14px] font-semibold text-[#1a1208] truncate">{salon.name}</p>
           <p className="text-[12px] text-[#7a6a55]">{salon.owner} · {salon.city}</p>
         </div>
-        {/* Action buttons */}
         <div className="flex items-center gap-3 flex-shrink-0 pt-0.5">
-          <button onClick={() => onView(salon)} title="View details" className="text-[#b0a090] hover:text-[#1a1208] transition-colors">
-            <EyeIcon />
-          </button>
-          <button onClick={() => onReactivate(salon)} title="Reactivate" className="text-[#b0a090] hover:text-[#27ae60] transition-colors">
-            <RefreshIcon />
-          </button>
-          <button
-            onClick={() => onSuspend(salon)}
-            title={salon.status === "Suspended" ? "Unsuspend" : "Suspend"}
-            className={`transition-colors ${salon.status === "Suspended" ? "text-[#c0392b]" : "text-[#b0a090] hover:text-[#c0392b]"}`}
-          >
+          <button onClick={() => onView(salon)} className="text-[#b0a090] hover:text-[#1a1208] transition-colors"><EyeIcon /></button>
+          <button onClick={() => onReactivate(salon)} className="text-[#b0a090] hover:text-[#27ae60] transition-colors"><RefreshIcon /></button>
+          <button onClick={() => onSuspend(salon)}
+            className={`transition-colors ${salon.status === "Suspended" ? "text-[#c0392b]" : "text-[#b0a090] hover:text-[#c0392b]"}`}>
             <BanIcon />
           </button>
         </div>
       </div>
-
-      {/* Badges row */}
       <div className="flex flex-wrap gap-2 mt-3">
-        <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${
-          salon.type === "Spa" ? "bg-[#eaf0ff] text-[#3b5bdb] border-[#c7d2fe]" : "bg-[#f0ebe3] text-[#7a6a55] border-[#e8e0d4]"
-        }`}>
-          {salon.type}
-        </span>
-        <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${planColors[salon.plan]}`}>
-          {salon.plan}
-        </span>
-        <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${statusStyles[salon.status]}`}>
-          {salon.status}
-        </span>
+        <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${salon.type === "Spa" ? "bg-[#eaf0ff] text-[#3b5bdb] border-[#c7d2fe]" : "bg-[#f0ebe3] text-[#7a6a55] border-[#e8e0d4]"}`}>{salon.type}</span>
+        <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${planColors[salon.plan]}`}>{salon.plan}</span>
+        <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${statusStyles[salon.status]}`}>{salon.status}</span>
       </div>
-
-      {/* Stats row */}
       <div className="grid grid-cols-3 gap-2 mt-3">
         <div className="bg-[#fdf9f4] rounded-lg px-3 py-2 text-center">
           <p className="text-[13px] font-bold text-[#1a1208]">{salon.revenue}</p>
@@ -352,10 +284,7 @@ function SalonCard({
         </div>
         <div className="bg-[#fdf9f4] rounded-lg px-3 py-2 text-center">
           {salon.rating !== null ? (
-            <div className="flex items-center justify-center gap-1">
-              <StarIcon />
-              <p className="text-[13px] font-bold text-[#1a1208]">{salon.rating}</p>
-            </div>
+            <div className="flex items-center justify-center gap-1"><StarIcon /><p className="text-[13px] font-bold text-[#1a1208]">{salon.rating}</p></div>
           ) : (
             <p className="text-[13px] font-bold text-[#b0a090]">N/A</p>
           )}
@@ -374,12 +303,10 @@ export default function SalonsPage() {
   const [filter,     setFilter]     = useState<Filter>("All");
   const [typeFilter, setTypeFilter] = useState<BusinessType | null>(null);
   const [page,       setPage]       = useState(1);
-
   const [salons,     setSalons]     = useState<Salon[]>([]);
   const [summary,    setSummary]    = useState<Summary>({ total: 0, active: 0, pending: 0, suspended: 0 });
   const [total,      setTotal]      = useState(0);
   const [totalPages, setTotalPages] = useState(1);
-
   const [viewSalon,  setViewSalon]  = useState<Salon | null>(null);
   const [loading,    setLoading]    = useState(true);
   const [error,      setError]      = useState<string | null>(null);
@@ -388,37 +315,26 @@ export default function SalonsPage() {
   const fetchSalons = useCallback(async (currentPage: number) => {
     setLoading(true);
     setError(null);
-    if (!API_BASE) {
-  setError("API URL not set");
-  setLoading(false);
-  return;
-}
+    if (!API_BASE) { setError("API URL not set"); setLoading(false); return; }
     try {
-     const res = await fetch(
-  `${API_BASE}/salon/salons?page=${currentPage}&limit=${ITEMS_PER_PAGE}`
-);
+      const res  = await fetch(`${API_BASE}/salon/salons?page=${currentPage}&limit=${ITEMS_PER_PAGE}`);
       if (!res.ok) throw new Error(`Server error: ${res.status}`);
-    const data = await res.json().catch(() => ({}));
-
-     const raw = Array.isArray(data)
-  ? data
-  : (data.salons ?? []);
+      const data = await res.json().catch(() => ({}));
+      const raw  = Array.isArray(data) ? data : (data.salons ?? []);
 
       const mapped: Salon[] = raw.map((item: any, idx: number) => ({
         id:             item.id         ?? idx + 1,
         firebaseId:     item.firebaseId ?? String(idx),
+        ownerId:        item.ownerId    ?? "",   // ✅ store ownerId from backend
         name:           item.name       || item.branch    || "Unnamed",
         owner:          item.owner      || item.ownerName || "Unknown",
         city:           item.city       || item.address   || "—",
         plan:           normalizePlan(item.plan ?? item.planName ?? ""),
         branches:       Number(item.branches       ?? item.branchCount ?? 0),
         activeBranches: Number(item.activeBranches ?? 0),
-        revenue:
-          item.revenue != null
-            ? typeof item.revenue === "number"
-              ? formatINR(item.revenue)
-              : String(item.revenue)
-            : "₹0",
+        revenue:        item.revenue != null
+          ? typeof item.revenue === "number" ? formatINR(item.revenue) : String(item.revenue)
+          : "₹0",
         rating: item.rating != null ? Number(item.rating) : null,
         status: normalizeStatus(item.status ?? item.subscriptionStatus ?? ""),
         type:   item.type?.toLowerCase() === "spa" ? "Spa" : "Salon",
@@ -428,51 +344,68 @@ export default function SalonsPage() {
       if (data.summary) setSummary(data.summary);
       setTotal(data.total ?? mapped.length);
       setTotalPages(data.totalPages ?? 1);
-   } catch (err: unknown) {
+    } catch (err: unknown) {
       console.error("Error fetching salons:", err);
-     setError(
-  err instanceof Error ? err.message : "Failed"
-);
+      setError(err instanceof Error ? err.message : "Failed");
     } finally {
       setLoading(false);
     }
-}, [API_BASE]);
+  }, []);
 
   useEffect(() => { fetchSalons(page); }, [page, fetchSalons]);
 
   /* ── Client-side filtering ── */
   const filtered = salons.filter((s) => {
-    const matchSearch =
-      s.name.toLowerCase().includes(search.toLowerCase()) ||
+    const matchSearch = s.name.toLowerCase().includes(search.toLowerCase()) ||
       s.city.toLowerCase().includes(search.toLowerCase()) ||
       s.owner.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = filter === "All" || s.status === filter;
-    const matchType   = !typeFilter || s.type === typeFilter;
-    return matchSearch && matchStatus && matchType;
+    return matchSearch && (filter === "All" || s.status === filter) && (!typeFilter || s.type === typeFilter);
   });
 
   /* ── Handlers ── */
-  const handleFilterChange = (f: Filter) => { setFilter(f); setPage(1); };
-  const handleSearch       = (val: string) => { setSearch(val); setPage(1); };
+  const handleFilterChange = (f: Filter)       => { setFilter(f); setPage(1); };
+  const handleSearch       = (val: string)     => { setSearch(val); setPage(1); };
   const handleTypeFilter   = (t: BusinessType) => { setTypeFilter((prev) => (prev === t ? null : t)); setPage(1); };
 
-  const handleReactivate = async (salon: Salon) => {
-    setSalons((prev) => prev.map((s) => (s.id === salon.id ? { ...s, status: "Active" } : s)));
+  // ✅ FIXED: use salon.ownerId (not firebaseId) for the API call
+  const updateStatus = async (salon: Salon, newStatus: Status) => {
+    if (!salon.ownerId) {
+      console.error("No ownerId on salon:", salon);
+      return;
+    }
+    // Optimistically update UI
+    setSalons((prev) => prev.map((s) => (s.id === salon.id ? { ...s, status: newStatus } : s)));
+    // Update summary counts
+    setSummary((prev) => {
+      const updated = { ...prev };
+      const oldKey = salon.status.toLowerCase() as keyof Summary;
+      const newKey = newStatus.toLowerCase() as keyof Summary;
+      if (oldKey in updated) updated[oldKey] = Math.max(0, updated[oldKey] - 1);
+      if (newKey in updated) updated[newKey] = updated[newKey] + 1;
+      return updated;
+    });
+
     try {
-     await fetch(`${API_BASE}/salon/${salon.firebaseId}/status`, {
-        method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "active" }),
+      const res = await fetch(`${API_BASE}/salon/${salon.ownerId}/status`, {
+        method:  "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ status: newStatus.toLowerCase() }),
       });
-    } catch { fetchSalons(page); }
+      if (!res.ok) {
+        // Revert on failure
+        console.error("Failed to update status, reverting...");
+        fetchSalons(page);
+      }
+    } catch {
+      console.error("Network error updating status, reverting...");
+      fetchSalons(page);
+    }
   };
 
-  const handleSuspend = async (salon: Salon) => {
+  const handleReactivate = (salon: Salon) => updateStatus(salon, "Active");
+  const handleSuspend    = (salon: Salon) => {
     const newStatus: Status = salon.status === "Suspended" ? "Active" : "Suspended";
-    setSalons((prev) => prev.map((s) => (s.id === salon.id ? { ...s, status: newStatus } : s)));
-    try {
-    await fetch(`${API_BASE}/salon/${salon.firebaseId}/status`, {
-        method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: newStatus.toLowerCase() }),
-      });
-    } catch { fetchSalons(page); }
+    updateStatus(salon, newStatus);
   };
 
   const FILTERS: Filter[] = ["All", "Active", "Pending", "Suspended"];
@@ -532,16 +465,12 @@ export default function SalonsPage() {
       {/* ── Header ── */}
       <div className="flex items-start justify-between mb-5 sm:mb-6">
         <div>
-          <h1 className="text-[22px] sm:text-[28px] font-bold text-[#1a1208] leading-tight">
-            Salon &amp; Spa Management
-          </h1>
-          <p className="text-sm text-[#7a6a55] mt-1">
-            Manage all registered salons and spas on the platform
-          </p>
+          <h1 className="text-[22px] sm:text-[28px] font-bold text-[#1a1208] leading-tight">Salon &amp; Spa Management</h1>
+          <p className="text-sm text-[#7a6a55] mt-1">Manage all registered salons and spas on the platform</p>
         </div>
       </div>
 
-      {/* ── Summary Cards — 2 cols mobile, 4 cols desktop ── */}
+      {/* ── Summary Cards ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-5 sm:mb-6">
         {[
           { label: "Total",     value: summary.total,     cls: "text-[#1a1208]" },
@@ -558,59 +487,31 @@ export default function SalonsPage() {
 
       {/* ── Search + Filters ── */}
       <div className="flex flex-col gap-3 mb-5 sm:mb-6">
-
-        {/* Search — full width on mobile */}
         <div className="flex items-center gap-2 bg-white border border-[#e8e0d4] rounded-xl px-4 py-2.5 text-sm text-[#7a6a55] w-full sm:w-72">
           <SearchIcon />
-          <input
-            type="text"
-            placeholder="Search by name, owner or city…"
-            value={search}
+          <input type="text" placeholder="Search by name, owner or city…" value={search}
             onChange={(e) => handleSearch(e.target.value)}
-            className="bg-transparent outline-none flex-1 text-[#1a1208] placeholder:text-[#7a6a55]"
-          />
+            className="bg-transparent outline-none flex-1 text-[#1a1208] placeholder:text-[#7a6a55]" />
         </div>
-
-        {/* Filter chips row — scrollable on mobile */}
         <div className="flex items-center gap-2 overflow-x-auto pb-0.5 scrollbar-hide">
           {FILTERS.map((f) => (
-            <button
-              key={f}
-              onClick={() => handleFilterChange(f)}
+            <button key={f} onClick={() => handleFilterChange(f)}
               className={`px-3 sm:px-4 py-2 rounded-xl text-sm font-medium border transition-colors whitespace-nowrap flex-shrink-0
-                ${filter === f
-                  ? "bg-[#c8922a] text-white border-[#c8922a]"
-                  : "bg-white text-[#7a6a55] border-[#e8e0d4] hover:border-[#c8922a] hover:text-[#c8922a]"
-                }`}
-            >
+                ${filter === f ? "bg-[#c8922a] text-white border-[#c8922a]" : "bg-white text-[#7a6a55] border-[#e8e0d4] hover:border-[#c8922a] hover:text-[#c8922a]"}`}>
               {f}
             </button>
           ))}
-
-          {/* Divider */}
           <span className="w-px h-5 bg-[#e8e0d4] flex-shrink-0" />
-
-          {/* Business type */}
           {(["Salon", "Spa"] as BusinessType[]).map((t) => (
-            <button
-              key={t}
-              onClick={() => handleTypeFilter(t)}
+            <button key={t} onClick={() => handleTypeFilter(t)}
               className={`px-3 sm:px-4 py-2 rounded-xl text-sm font-medium border transition-colors whitespace-nowrap flex-shrink-0
-                ${typeFilter === t
-                  ? "bg-[#c8922a] text-white border-[#c8922a]"
-                  : "bg-white text-[#7a6a55] border-[#e8e0d4] hover:border-[#c8922a] hover:text-[#c8922a]"
-                }`}
-            >
+                ${typeFilter === t ? "bg-[#c8922a] text-white border-[#c8922a]" : "bg-white text-[#7a6a55] border-[#e8e0d4] hover:border-[#c8922a] hover:text-[#c8922a]"}`}>
               {t}
             </button>
           ))}
-
-          {/* Clear */}
           {(filter !== "All" || typeFilter || search) && (
-            <button
-              onClick={() => { setFilter("All"); setTypeFilter(null); setSearch(""); setPage(1); }}
-              className="text-xs text-[#c0392b] border border-[#f5c6c2] bg-[#fdecea] px-3 py-1.5 rounded-xl hover:bg-[#f9d9d7] transition-colors whitespace-nowrap flex-shrink-0"
-            >
+            <button onClick={() => { setFilter("All"); setTypeFilter(null); setSearch(""); setPage(1); }}
+              className="text-xs text-[#c0392b] border border-[#f5c6c2] bg-[#fdecea] px-3 py-1.5 rounded-xl hover:bg-[#f9d9d7] transition-colors whitespace-nowrap flex-shrink-0">
               Clear ✕
             </button>
           )}
@@ -619,32 +520,20 @@ export default function SalonsPage() {
 
       {/* ── Table / Cards ── */}
       <div className="bg-white border border-[#e8e0d4] rounded-2xl overflow-hidden">
-
-        {/* ── DESKTOP TABLE (md and up) ── */}
+        {/* DESKTOP TABLE */}
         <div className="hidden md:block">
-          {/* Table header */}
           <div className="grid grid-cols-[2.5fr_0.8fr_1fr_1fr_1fr_0.8fr_1fr_1fr] px-6 py-3 border-b border-[#e8e0d4] bg-[#fdf9f4]">
             {["SALON / OWNER", "TYPE", "PLAN", "BRANCHES", "REVENUE", "RATING", "STATUS", "ACTIONS"].map((h) => (
-              <p key={h} className="text-[11px] font-semibold tracking-wider text-[#7a6a55] uppercase">
-                {h}
-              </p>
+              <p key={h} className="text-[11px] font-semibold tracking-wider text-[#7a6a55] uppercase">{h}</p>
             ))}
           </div>
-
-          {/* Rows */}
           {filtered.length === 0 ? (
-            <div className="py-16 text-center text-[#7a6a55] text-sm">
-              No salons found matching your criteria.
-            </div>
+            <div className="py-16 text-center text-[#7a6a55] text-sm">No salons found matching your criteria.</div>
           ) : (
             filtered.map((salon, i) => (
-              <div
-                key={salon.firebaseId}
+              <div key={salon.firebaseId}
                 className={`grid grid-cols-[2.5fr_0.8fr_1fr_1fr_1fr_0.8fr_1fr_1fr] px-6 py-4 items-center
-                  ${i < filtered.length - 1 ? "border-b border-[#f0ebe3]" : ""}
-                  hover:bg-[#fdf9f4] transition-colors`}
-              >
-                {/* Salon name + owner */}
+                  ${i < filtered.length - 1 ? "border-b border-[#f0ebe3]" : ""} hover:bg-[#fdf9f4] transition-colors`}>
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-[#f0ebe3] flex items-center justify-center text-[13px] font-bold text-[#7a6a55] flex-shrink-0">
                     {salon.name[0]?.toUpperCase()}
@@ -654,37 +543,19 @@ export default function SalonsPage() {
                     <p className="text-[11.5px] text-[#7a6a55]">{salon.owner} · {salon.city}</p>
                   </div>
                 </div>
-
-                {/* Type */}
                 <div>
-                  <span className={`text-xs font-medium px-3 py-1 rounded-full border ${
-                    salon.type === "Spa"
-                      ? "bg-[#eaf0ff] text-[#3b5bdb] border-[#c7d2fe]"
-                      : "bg-[#f0ebe3] text-[#7a6a55] border-[#e8e0d4]"
-                  }`}>
+                  <span className={`text-xs font-medium px-3 py-1 rounded-full border ${salon.type === "Spa" ? "bg-[#eaf0ff] text-[#3b5bdb] border-[#c7d2fe]" : "bg-[#f0ebe3] text-[#7a6a55] border-[#e8e0d4]"}`}>
                     {salon.type}
                   </span>
                 </div>
-
-                {/* Plan */}
                 <div>
-                  <span className={`text-xs font-medium px-3 py-1 rounded-full border ${planColors[salon.plan]}`}>
-                    {salon.plan}
-                  </span>
+                  <span className={`text-xs font-medium px-3 py-1 rounded-full border ${planColors[salon.plan]}`}>{salon.plan}</span>
                 </div>
-
-                {/* Branches */}
                 <div>
                   <p className="text-[13.5px] text-[#1a1208] font-medium">{salon.branches}</p>
-                  {salon.activeBranches > 0 && (
-                    <p className="text-[11px] text-[#27ae60]">{salon.activeBranches} active</p>
-                  )}
+                  {salon.activeBranches > 0 && <p className="text-[11px] text-[#27ae60]">{salon.activeBranches} active</p>}
                 </div>
-
-                {/* Revenue */}
                 <p className="text-[13.5px] font-semibold text-[#1a1208]">{salon.revenue}</p>
-
-                {/* Rating */}
                 <div className="flex items-center gap-1">
                   {salon.rating !== null ? (
                     <><StarIcon /><span className="text-[13.5px] text-[#1a1208]">{salon.rating}</span></>
@@ -692,27 +563,14 @@ export default function SalonsPage() {
                     <span className="text-[13px] text-[#b0a090]">N/A</span>
                   )}
                 </div>
-
-                {/* Status */}
                 <div>
-                  <span className={`text-xs font-medium px-3 py-1 rounded-full border ${statusStyles[salon.status]}`}>
-                    {salon.status}
-                  </span>
+                  <span className={`text-xs font-medium px-3 py-1 rounded-full border ${statusStyles[salon.status]}`}>{salon.status}</span>
                 </div>
-
-                {/* Actions */}
                 <div className="flex items-center gap-3">
-                  <button onClick={() => setViewSalon(salon)} title="View details" className="text-[#b0a090] hover:text-[#1a1208] transition-colors">
-                    <EyeIcon />
-                  </button>
-                  <button onClick={() => handleReactivate(salon)} title="Reactivate" className="text-[#b0a090] hover:text-[#27ae60] transition-colors">
-                    <RefreshIcon />
-                  </button>
-                  <button
-                    onClick={() => handleSuspend(salon)}
-                    title={salon.status === "Suspended" ? "Unsuspend" : "Suspend"}
-                    className={`transition-colors ${salon.status === "Suspended" ? "text-[#c0392b]" : "text-[#b0a090] hover:text-[#c0392b]"}`}
-                  >
+                  <button onClick={() => setViewSalon(salon)} title="View details" className="text-[#b0a090] hover:text-[#1a1208] transition-colors"><EyeIcon /></button>
+                  <button onClick={() => handleReactivate(salon)} title="Reactivate" className="text-[#b0a090] hover:text-[#27ae60] transition-colors"><RefreshIcon /></button>
+                  <button onClick={() => handleSuspend(salon)} title={salon.status === "Suspended" ? "Unsuspend" : "Suspend"}
+                    className={`transition-colors ${salon.status === "Suspended" ? "text-[#c0392b]" : "text-[#b0a090] hover:text-[#c0392b]"}`}>
                     <BanIcon />
                   </button>
                 </div>
@@ -721,39 +579,21 @@ export default function SalonsPage() {
           )}
         </div>
 
-        {/* ── MOBILE CARDS (below md) ── */}
+        {/* MOBILE CARDS */}
         <div className="md:hidden">
           {filtered.length === 0 ? (
-            <div className="py-12 text-center text-[#7a6a55] text-sm">
-              No salons found matching your criteria.
-            </div>
+            <div className="py-12 text-center text-[#7a6a55] text-sm">No salons found matching your criteria.</div>
           ) : (
             filtered.map((salon) => (
-              <SalonCard
-                key={salon.firebaseId}
-                salon={salon}
-                onView={setViewSalon}
-                onReactivate={handleReactivate}
-                onSuspend={handleSuspend}
-              />
+              <SalonCard key={salon.firebaseId} salon={salon} onView={setViewSalon} onReactivate={handleReactivate} onSuspend={handleSuspend} />
             ))
           )}
         </div>
 
-        {/* ── Pagination ── */}
-        <Pagination
-          page={page}
-          totalPages={totalPages}
-          total={total}
-          perPage={ITEMS_PER_PAGE}
-          onPage={(p) => setPage(p)}
-        />
+        <Pagination page={page} totalPages={totalPages} total={total} perPage={ITEMS_PER_PAGE} onPage={(p) => setPage(p)} />
       </div>
 
-      {/* ── View Modal ── */}
-      {viewSalon && (
-        <Modal salon={viewSalon} onClose={() => setViewSalon(null)} />
-      )}
+      {viewSalon && <Modal salon={viewSalon} onClose={() => setViewSalon(null)} />}
     </div>
   );
 }
