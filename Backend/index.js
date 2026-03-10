@@ -58,7 +58,7 @@ const allowedOrigins = [
   "http://127.0.0.1:5173",
 ];
 
-app.use(cors({
+const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (e.g. Postman, mobile apps, curl)
     if (!origin) return callback(null, true);
@@ -76,9 +76,12 @@ app.use(cors({
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "Origin", "X-Requested-With", "Accept"],
   credentials: true,
-}));
+};
 
-app.options("*", cors());
+app.use(cors(corsOptions));
+
+// ✅ FIXED: "/{*path}" instead of "*" — required for Express 5 / new path-to-regexp
+app.options("/{*path}", cors(corsOptions));
 
 /* -------------------- MIDDLEWARE -------------------- */
 app.use(express.json());
