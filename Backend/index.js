@@ -56,28 +56,22 @@ const allowedOrigins = [
   "http://127.0.0.1:3002",
   "http://127.0.0.1:3003",
   "http://127.0.0.1:5173",
-  "https://adminglowbiz.vercel.app",
-  "https://customerglowbiz.vercel.app",
-  "https://nexsalon.vercel.app",
-  "https://super-six-flax.vercel.app",
-  "https://super-ibobrnsto-sunayanaaryahsworld-alts-projects.vercel.app",
-  "https://sunayanaaryahsworld-alts-projects.vercel.app",
-  "https://nex-tau-liard.vercel.app",
-  "https://salonn-kappa.vercel.app",
-  "https://salonn-l2r0e09fd-sunayanaaryahsworld-alts-projects.vercel.app", // ✅ Added
-   "https://final-nine-azure.vercel.app", // ✅ ADD THIS LINE
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (e.g. Postman, mobile apps, curl)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.error(`CORS blocked: ${origin}`);
-      callback(new Error(`CORS policy: origin ${origin} not allowed`));
-    }
+
+    // ✅ Allow ALL Vercel deployments (covers preview + production URLs)
+    if (origin.endsWith(".vercel.app")) return callback(null, true);
+
+    // ✅ Allow localhost origins
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+
+    // ❌ Block everything else
+    console.error(`CORS blocked: ${origin}`);
+    callback(new Error(`CORS policy: origin ${origin} not allowed`));
   },
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "Origin", "X-Requested-With", "Accept"],
