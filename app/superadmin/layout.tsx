@@ -57,7 +57,7 @@ export default function SuperAdminLayout({ children }: { children: ReactNode }) 
             open={mobileOpen}
             onClose={() => setMobileOpen(false)}
           />
-          <MobileBottomNav onMoreClick={() => setMobileOpen(true)} />
+          <MobileBottomNav />
 
           <main className="flex-1 overflow-y-auto w-full relative pb-[64px] lg:pb-0">
             <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">

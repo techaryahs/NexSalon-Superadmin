@@ -3,12 +3,26 @@
 import Link from "next/link";
 import Image from "next/image";
 
-export function Topbar({ pageTitle }: { pageTitle: string }) {
+export function Topbar({ pageTitle, onMenuClick }: { pageTitle: string; onMenuClick?: () => void }) {
     return (
         <header className="flex items-center h-[64px] px-4 sm:px-6 bg-[#2C1E17] flex-shrink-0 z-20 shadow-[0_2px_12px_rgba(44,30,23,0.25)] gap-4">
 
             {/* Logo + Brand */}
             <div className="flex items-center gap-3 flex-shrink-0">
+                {/* Mobile Menu Toggle */}
+                {onMenuClick && (
+                    <button
+                        onClick={onMenuClick}
+                        className="lg:hidden p-1 -ml-1 text-[#C9A96E] hover:bg-[#3D2D22] rounded-lg transition-colors"
+                        aria-label="Open menu"
+                    >
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="3" y1="12" x2="21" y2="12" />
+                            <line x1="3" y1="6" x2="21" y2="6" />
+                            <line x1="3" y1="18" x2="21" y2="18" />
+                        </svg>
+                    </button>
+                )}
                 <Image
                     src="/logo.png"
                     alt="NexSalon"
