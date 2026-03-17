@@ -12,6 +12,7 @@ type DashboardStats = {
   activeSubscriptions?: number;
   pendingApprovals?: number;
   mrr?: number;
+  trialCount?: number;
 };
 
 /* ───────────────────────────────────────── TYPES ───────────────────────────────────────── */
@@ -500,17 +501,18 @@ export default function DashboardPage() {
         </svg>
       ),
     },
-    {
-      label: "MRR",
-      value: formatINR(s.mrr || 0),
-      trend: "+16%", up: true,
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-          <polyline points="17 6 23 6 23 12" />
-        </svg>
-      ),
-    },
+   {
+  label: "Trial Users",
+  value: s.trialCount?.toString() || "0",
+  trend: "+0%",
+  up: true,
+  icon: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M8 12h8" />
+    </svg>
+  ),
+},
     {
       label: "System Uptime",
       value: "99.8%",
