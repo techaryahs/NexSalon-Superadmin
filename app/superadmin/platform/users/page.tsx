@@ -209,41 +209,64 @@ export default function UserManagementPage() {
   });
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchUsers = useCallback((page: number, searchVal: string, roleVal: string) => {
+const fetchUsers = useCallback((page: number, searchVal: string, roleVal: string) => {
     if (!API_BASE) return;
     setIsLoading(true);
+    // fetch(
+    //   `${API_BASE}/superdashboard/users?page=${page}&limit=${USERS_PER_PAGE}&search=${encodeURIComponent(searchVal)}&role=${encodeURIComponent(roleVal)}`
+    // )
+    //   .then((res) => res.json())
+    //   .then((data: { users: User[]; pagination: Pagination; roleSummary?: RoleSummary; statusSummary?: StatusSummary }) => {
+    //     setUsers(data.users);
+    //     setPagination(data.pagination);
+    //     if (data.roleSummary) setRoleSummary(data.roleSummary);
+    //     if (data.statusSummary) setStatusSummary(data.statusSummary);
+    //   })
+    //   .catch((err: unknown) => console.error(err))
+    //   .finally(() => setIsLoading(false));
     fetch(
-      `${API_BASE}/superdashboard/users?page=${page}&limit=${USERS_PER_PAGE}&search=${encodeURIComponent(searchVal)}&role=${encodeURIComponent(roleVal)}`
-    )
-      .then((res) => res.json())
-      .then((data: { users: User[]; pagination: Pagination; roleSummary?: RoleSummary; statusSummary?: StatusSummary }) => {
-        setUsers(data.users);
-        setPagination(data.pagination);
-        if (data.roleSummary) setRoleSummary(data.roleSummary);
-        if (data.statusSummary) setStatusSummary(data.statusSummary);
-      })
-      .catch((err: unknown) => console.error(err))
-      .finally(() => setIsLoading(false));
-  }, []);
+  `${API_BASE}/superdashboard/users?page=${page}&limit=${USERS_PER_PAGE}&search=${encodeURIComponent(searchVal)}&role=${encodeURIComponent(roleVal)}`
+)
+  .then((res) => {
+    if (!res.ok) throw new Error("API failed");
+    return res.json();
+  })
+  .then((data) => {
+    setUsers(data?.users || []);
 
-  // Initial load check
-  const [initialLoad, setInitialLoad] = useState(true);
-  useEffect(() => {
-    if (!isLoading && initialLoad) setInitialLoad(false);
-  }, [isLoading, initialLoad]);
+    if (data?.pagination) {
+      setPagination(data.pagination);
+    }
 
-  if (isLoading && initialLoad) return <LoadingScreen />;
+    setRoleSummary(data?.roleSummary || null);
+    setStatusSummary(data?.statusSummary || null);
+  })
+  .catch((err) => {
+    console.error("FETCH USERS ERROR:", err);
+  })
+  .finally(() => {
+    setIsLoading(false);
+  });
+  }, [API_BASE]);
 
-  // Initial load
+ // Initial load
   useEffect(() => {
     fetchUsers(1, "", "");
   }, [fetchUsers]);
+  
+// Search debounce
+    useEffect(() => {
+  const delay = setTimeout(() => {
+    fetchUsers(1, search, activeRole);
+  }, 400);
 
-  // Search debounce
-  useEffect(() => {
-    const delay = setTimeout(() => { fetchUsers(1, search, activeRole); }, 400);
-    return () => clearTimeout(delay);
-  }, [search]);
+  return () => clearTimeout(delay);
+}, [search, activeRole]);
+  
+// if (isLoading && users.length === 0) return <LoadingScreen />;
+if (isLoading && users.length === 0) {
+  return <LoadingScreen />;
+}
 
   const handlePageChange = (page: number) => {
     if (page < 1 || page > pagination.totalPages) return;
