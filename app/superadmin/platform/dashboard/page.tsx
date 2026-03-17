@@ -48,25 +48,54 @@ interface Plan {
 ───────────────────────────────────────── */
 const STATS: Stat[] = [
   {
+    label: "Trial Users",
+    value: "0",
+    trend: "+0%",
+    up: true,
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <circle cx="12" cy="12" r="10" /><path d="M8 12h8" />
+      </svg>
+    ),
+  },
+  {
+    label: "Premium",
+    value: "0",
+    trend: "+0%",
+    up: true,
+    gold: true,
+    icon: <span className="text-lg font-bold">★</span>,
+  },
+  {
+    label: "Standard",
+    value: "0",
+    trend: "+0%",
+    up: true,
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" />
+      </svg>
+    ),
+  },
+  {
+    label: "Basic",
+    value: "0",
+    trend: "+0%",
+    up: true,
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" />
+      </svg>
+    ),
+  },
+  {
     label: "Total Salons & Spas",
     value: "312",
     trend: "+14%",
     up: true,
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M3 7h18v13H3z" />
-        <path d="M8 7V5a4 4 0 0 1 8 0v2" />
-      </svg>
-    ),
-  },
-  {
-    label: "Active Branches",
-    value: "847",
-    trend: "+8%",
-    up: true,
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+        <path d="M3 7h18v13H3z" /><path d="M8 7V5a4 4 0 0 1 8 0v2" />
       </svg>
     ),
   },
@@ -89,7 +118,7 @@ const STATS: Stat[] = [
     trend: "+18%",
     up: true,
     gold: true,
-    icon: <span className="text-lg font-bold">₹</span>
+    icon: <span className="text-lg font-bold">₹</span>,
   },
   {
     label: "Active Subscriptions",
@@ -98,20 +127,7 @@ const STATS: Stat[] = [
     up: true,
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <rect x="1" y="4" width="22" height="16" rx="2" />
-        <line x1="1" y1="10" x2="23" y2="10" />
-      </svg>
-    ),
-  },
-  {
-    label: "Pending Approvals",
-    value: "7",
-    trend: "-30%",
-    up: false,
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <circle cx="12" cy="12" r="10" />
-        <polyline points="12 6 12 12 16 14" />
+        <rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" />
       </svg>
     ),
   },
@@ -122,19 +138,7 @@ const STATS: Stat[] = [
     up: true,
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-        <polyline points="17 6 23 6 23 12" />
-      </svg>
-    ),
-  },
-  {
-    label: "System Uptime",
-    value: "99.8%",
-    trend: "+0.1%",
-    up: true,
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <polyline points="20 6 9 17 4 12" />
+        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" /><polyline points="17 6 23 6 23 12" />
       </svg>
     ),
   },
@@ -158,10 +162,10 @@ const BAR_DATA = [190, 210, 200, 230, 215, 240, 260];
 
 /* ───────────────────────────────────────── PLAN COLORS ───────────────────────────────────────── */
 const PLAN_COLORS: Record<string, string> = {
-  Enterprise: "#C9A227",
-  Pro: "#3B2B23",
-  Starter: "#C9B89A",
   Trial: "#EBE0D2",
+  Premium: "#C9A227",
+  Standard: "#3B2B23",
+  Basic: "#C9B89A",
 };
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
@@ -177,7 +181,7 @@ function formatINR(amount: number): string {
 /* ───────────────────────────────────────── CARD COMPONENT ───────────────────────────────────────── */
 function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`card-premium p-6 ${className}`}>
+    <div className={`bg-white p-6 rounded-xl shadow-sm ${className}`}>
       {children}
     </div>
   );
@@ -390,6 +394,7 @@ export default function DashboardPage() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [topSalons, setTopSalons] = useState<Salon[]>([]);
   const [loading, setLoading] = useState(true);
+  const [planDist, setPlanDist] = useState<Record<string, number>>({});
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -410,6 +415,7 @@ export default function DashboardPage() {
               color: PLAN_COLORS[label] || "#888",
             }))
         );
+        setPlanDist(data.planDistribution || {});
 
         // Build top salons list
         setTopSalons(
@@ -439,91 +445,82 @@ export default function DashboardPage() {
 
   const s = stats || {};
 
-  const DYNAMIC_STATS: Stat[] = [
-    {
-      label: "Total Salons & Spas",
-      value: s.totalSalonsAndSpas?.toString() || "0",
-      trend: "+14%", up: true,
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M3 7h18v13H3z" />
-          <path d="M8 7V5a4 4 0 0 1 8 0v2" />
-        </svg>
-      )
-    },
-    {
-      label: "Active Branches",
-      value: s.totalBranches?.toString() || "0",
-      trend: "+8%", up: true,
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-        </svg>
-      )
-    },
-    {
-      label: "Total Customers",
-      value: s.totalCustomers?.toLocaleString() || "0",
-      trend: "+22%", up: true,
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-          <circle cx="9" cy="7" r="4" />
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-        </svg>
-      ),
-    },
-    {
-      label: "Platform Revenue",
-      value: formatINR(s.totalRevenue || 0),
-      trend: "+18%", up: true, gold: true,
-      icon: <span className="text-xl font-bold">₹</span>,
-    },
-    {
-      label: "Active Subscriptions",
-      value: s.activeSubscriptions?.toString() || "0",
-      trend: "+11%", up: true,
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="1" y="4" width="22" height="16" rx="2" />
-          <line x1="1" y1="10" x2="23" y2="10" />
-        </svg>
-      ),
-    },
-    {
-      label: "Pending Approvals",
-      value: s.pendingApprovals?.toString() || "0",
-      trend: "-30%", up: false,
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="12" cy="12" r="10" />
-          <polyline points="12 6 12 12 16 14" />
-        </svg>
-      ),
-    },
-   {
-  label: "Trial Users",
-  value: s.trialCount?.toString() || "0",
-  trend: "+0%",
-  up: true,
-  icon: (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="12" cy="12" r="10" />
-      <path d="M8 12h8" />
-    </svg>
-  ),
-},
-    {
-      label: "System Uptime",
-      value: "99.8%",
-      trend: "+0.1%", up: true,
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <polyline points="20 6 9 17 4 12" />
-        </svg>
-      ),
-    },
-  ];
+const DYNAMIC_STATS: Stat[] = [
+  {
+    label: "Trial Users",
+    value: (planDist.Trial ?? 0).toString(),
+    trend: "+0%", up: true,
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <circle cx="12" cy="12" r="10" /><path d="M8 12h8" />
+      </svg>
+    ),
+  },
+  {
+    label: "Premium",
+    value: (planDist.Premium ?? 0).toString(),
+    trend: "+0%", up: true, gold: true,
+    icon: <span className="text-xl font-bold">★</span>,
+  },
+  {
+    label: "Standard",
+    value: (planDist.Standard ?? 0).toString(),
+    trend: "+0%", up: true,
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" />
+      </svg>
+    ),
+  },
+  {
+    label: "Basic",
+    value: (planDist.Basic ?? 0).toString(),
+    trend: "+0%", up: true,
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" />
+      </svg>
+    ),
+  },
+  {
+    label: "Total Salons & Spas",
+    value: s.totalSalonsAndSpas?.toString() || "0",
+    trend: "+14%", up: true,
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M3 7h18v13H3z" /><path d="M8 7V5a4 4 0 0 1 8 0v2" />
+      </svg>
+    ),
+  },
+  {
+    label: "Total Customers",
+    value: s.totalCustomers?.toLocaleString() || "0",
+    trend: "+22%", up: true,
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+    ),
+  },
+  {
+    label: "Platform Revenue",
+    value: formatINR(s.totalRevenue || 0),
+    trend: "+18%", up: true, gold: true,
+    icon: <span className="text-xl font-bold">₹</span>,
+  },
+  {
+    label: "Active Subscriptions",
+    value: s.activeSubscriptions?.toString() || "0",
+    trend: "+11%", up: true,
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" />
+      </svg>
+    ),
+  },
+];
 
   const displayStats = stats ? DYNAMIC_STATS : STATS;
   const displaySalons = topSalons.length > 0 ? topSalons : TOP_SALONS;
