@@ -19,7 +19,6 @@ const PAGE_TITLES: Record<string, string> = {
   "/superadmin/advanced/white-label": "White Label",
   "/superadmin/advanced/compliance": "Compliance",
   "/superadmin/advanced/system-monitor": "System Monitor",
-  "/superadmin/advanced/app-distribution": "App Distribution Management",
   "/superadmin/advanced/founder": "Founder Mode",
 };
 
