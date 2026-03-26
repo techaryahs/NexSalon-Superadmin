@@ -83,14 +83,14 @@ export default function AppDistributionPage() {
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      
+
       {/* Header Summary */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-[#2C1E17]">App Distribution</h2>
           <p className="text-[#8A7060] text-sm mt-1">Manage and push latest APK versions to the platform</p>
         </div>
-        <button 
+        <button
           onClick={fetchLinks}
           disabled={refreshing}
           className="flex items-center gap-2 px-4 py-2 bg-white border border-[#EBE0D2] rounded-xl text-[#7A5210] text-sm font-semibold hover:bg-[#FAF5EF] transition-all"
@@ -101,9 +101,8 @@ export default function AppDistributionPage() {
       </div>
 
       {msg && (
-        <div className={`p-4 rounded-2xl flex items-center gap-3 animate-in zoom-in-95 duration-300 ${
-          msg.type === "success" ? "bg-green-50 border border-green-200 text-green-700" : "bg-red-50 border border-red-200 text-red-700"
-        }`}>
+        <div className={`p-4 rounded-2xl flex items-center gap-3 animate-in zoom-in-95 duration-300 ${msg.type === "success" ? "bg-green-50 border border-green-200 text-green-700" : "bg-red-50 border border-red-200 text-red-700"
+          }`}>
           {msg.type === "success" ? <Check size={18} /> : <AlertCircle size={18} />}
           <p className="text-sm font-medium">{msg.text}</p>
         </div>
@@ -111,11 +110,11 @@ export default function AppDistributionPage() {
 
       {/* Grid: Live Status & Upload Form */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
+
         {/* Live Versions (Sticky on desktop) */}
         <div className="lg:col-span-1 space-y-6 lg:sticky lg:top-8 h-fit">
           <h3 className="text-xs font-bold text-[#9B8070] uppercase tracking-wider pl-1">Live Status</h3>
-          
+
           {["customer", "admin"].map((t) => {
             const data = (currentLinks as any)[t];
             return (
@@ -141,8 +140,8 @@ export default function AppDistributionPage() {
                         <span className="text-[#8A7060]">Build</span>
                         <span className="font-mono text-[#D4A96A] font-bold">v{String(data.version).slice(-6)}</span>
                       </div>
-                      <a 
-                        href={data.url} 
+                      <a
+                        href={data.url}
                         target="_blank"
                         className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-[#FAF5EF] text-[#7A5210] text-xs font-bold hover:bg-[#F5EDE0] transition-all mt-2"
                       >
@@ -166,7 +165,7 @@ export default function AppDistributionPage() {
           <div className="bg-white rounded-[2.5rem] border border-[#EBE0D2] shadow-sm overflow-hidden">
             <div className="p-8 md:p-12">
               <form onSubmit={handleUpload} className="space-y-10">
-                
+
                 {/* 1. Target Toggle */}
                 <div className="space-y-4">
                   <label className="text-[11px] font-bold text-[#9B8070] uppercase tracking-widest pl-1">Application Target</label>
@@ -174,11 +173,10 @@ export default function AppDistributionPage() {
                     <button
                       type="button"
                       onClick={() => setTarget("customer")}
-                      className={`p-5 rounded-2xl border-2 flex items-center gap-4 transition-all duration-300 ${
-                        target === "customer"
+                      className={`p-5 rounded-2xl border-2 flex items-center gap-4 transition-all duration-300 ${target === "customer"
                           ? "border-[#C9A24D] bg-[#FDF9EE] text-[#2C1E17] shadow-sm"
                           : "border-[#FAF5EF] bg-[#FCFAF8] text-[#8A7060] hover:border-[#EBE0D2]"
-                      }`}
+                        }`}
                     >
                       <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${target === "customer" ? "bg-[#C9A24D] text-white" : "bg-[#EBE0D2] text-[#8A7060]"}`}>
                         <Smartphone size={20} />
@@ -191,11 +189,10 @@ export default function AppDistributionPage() {
                     <button
                       type="button"
                       onClick={() => setTarget("admin")}
-                      className={`p-5 rounded-2xl border-2 flex items-center gap-4 transition-all duration-300 ${
-                        target === "admin"
+                      className={`p-5 rounded-2xl border-2 flex items-center gap-4 transition-all duration-300 ${target === "admin"
                           ? "border-[#C9A24D] bg-[#FDF9EE] text-[#2C1E17] shadow-sm"
                           : "border-[#FAF5EF] bg-[#FCFAF8] text-[#8A7060] hover:border-[#EBE0D2]"
-                      }`}
+                        }`}
                     >
                       <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${target === "admin" ? "bg-[#C9A24D] text-white" : "bg-[#EBE0D2] text-[#8A7060]"}`}>
                         <Smartphone size={20} />
@@ -221,11 +218,10 @@ export default function AppDistributionPage() {
                     />
                     <label
                       htmlFor="apk-upload-file"
-                      className={`flex flex-col items-center justify-center p-12 lg:p-20 border-2 border-dashed rounded-[2rem] cursor-pointer transition-all duration-300 ${
-                        file
+                      className={`flex flex-col items-center justify-center p-12 lg:p-20 border-2 border-dashed rounded-[2rem] cursor-pointer transition-all duration-300 ${file
                           ? "border-[#C9A24D] bg-[#FDF9EE]/40"
                           : "border-[#EBE0D2] bg-[#FCFAF8] hover:border-[#C9A24D]"
-                      }`}
+                        }`}
                     >
                       {file ? (
                         <div className="text-center">
@@ -253,11 +249,10 @@ export default function AppDistributionPage() {
                   <button
                     type="submit"
                     disabled={loading || !file}
-                    className={`w-full py-5 rounded-2xl font-bold text-base transition-all duration-500 shadow-xl flex items-center justify-center gap-3 ${
-                      loading || !file
+                    className={`w-full py-5 rounded-2xl font-bold text-base transition-all duration-500 shadow-xl flex items-center justify-center gap-3 ${loading || !file
                         ? "bg-[#EBE0D2] text-[#8A7060] cursor-not-allowed shadow-none"
                         : "bg-[#2C1E17] text-white hover:bg-[#3d2e22] active:scale-95"
-                    }`}
+                      }`}
                   >
                     {loading ? (
                       <>
@@ -270,7 +265,7 @@ export default function AppDistributionPage() {
                       </>
                     )}
                   </button>
-                  
+
                   <div className="mt-8 flex items-start gap-3 p-5 rounded-2xl bg-[#FFF9F0] border border-[#FBEACF]">
                     <AlertCircle className="text-[#D4A96A] shrink-0 mt-0.5" size={18} />
                     <div className="text-[11px] text-[#7A5210] leading-relaxed">
